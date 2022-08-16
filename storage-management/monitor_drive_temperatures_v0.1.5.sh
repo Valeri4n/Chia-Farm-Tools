@@ -123,17 +123,17 @@ while true; do
       sp="-\|/"
       tp="-/|\\"
   #  if [ $((ONCE)) -eq 0 ] || [ $((DRIVE_COUNT)) -eq 1 ]; then
-      if [ $((HITEMP)) -ge 50 ]; then
+      if [ $((HITEMP)) -ge $((hi_alarm)) ]; then
         hitemp_color=1 # red
         hib=`(tput setab 1)`
         hif=`(tput setaf 0)`
         hibo=$bold
-      elif [ $((HITEMP)) -ge 42 ]; then
+      elif [ $((HITEMP)) -gt $((hi_alert)) ]; then
         hitemp_color=3 # yellow
         hib=``
         hif=`(tput setaf 5)`
         hibo=``
-      elif [ $((HITEMP)) -ge 30 ]; then
+      elif [ $((HITEMP)) -ge $((lo_alert)) ]; then
         hitemp_color=2 # green
         hib=``
         hif=`(tput setaf 5)`
@@ -144,17 +144,17 @@ while true; do
         hif=`(tput setaf 0)`
         hibo=$bold
       fi
-      if [ $((LOTEMP)) -le 15 ]; then
+      if [ $((LOTEMP)) -le $((lo_alarm)) ]; then
         lotemp_color=1 # red
         lob=`(tput setab 1)`
         lof=`(tput setaf 0)`
         lobo=$bold
-      elif [ $((LOTEMP)) -le 25 ]; then
+      elif [ $((LOTEMP)) -lt $((lo_alert)) ]; then
         lotemp_color=4 # blue
         lob=`(tput setab 4)`
         lof=`(tput setaf 0)`
         lobo=$bold
-      elif [ $((LOTEMP)) -le 40 ]; then
+      elif [ $((LOTEMP)) -le $((hi_alert)) ]; then
         lotemp_color=2 # green
         lob=``
         lof=`(tput setaf 6)`
