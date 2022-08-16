@@ -8,10 +8,17 @@
 # 
 # chmod +x [script.sh]  -  will make script executable
 # ./[script.sh]  -  will run script
+
+hi_alarm=50 # >=
+hi_alert=45 # >
+lo_alert=30 # <
+lo_alarm=25 # <=
+
 if [ ! "`whoami`" = "root" ]; then
   printf "\nPlease run script as root. Exiting\n\n"
   exit 1
 fi
+
 echo
 SMART=`which smartctl | wc -l`
 DTEMP=`which hddtemp | wc -l`
@@ -24,9 +31,11 @@ LOB=``
 LOF=``
 bold=`(tput bold)`
 reset=`(tput sgr0)`
+
 if [ ! -z $1 ]; then
   mount_point=$1
 fi
+
 while true; do
   HITEMP=
   LOTEMP=
@@ -218,9 +227,10 @@ while true; do
     fi
   done
   ONCE=1
-  if [ $((SECONDS)) -lt 60 ]; then
-    sleep 60
-  fi
+  if [ $((time_pass)) -gt $((SECONDS)) ]; then time_pass=0; fi
+  time_check=$(($SECONDS - $time_pass))
+  if [ $((time_check)) -lt 60 ]; then sleep $((60 - $time_check)); fi
+  time_pass=$SECONDS
 # Colors
 # 0 black
 # 1 red
