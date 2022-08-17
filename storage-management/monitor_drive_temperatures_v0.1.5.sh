@@ -3,6 +3,7 @@
 # This script looks at all mounted drives in one mount location and counts plots
 # If mount location is other than mnt or home, add location as  -  ./script.sh mnt
 #
+# A drive will not be checked more than once per minute 
 # Updates hi and lo drive list every 10+ minutes as dev/sd[]:[mount point]
 # If drive partition has a label, output will be [label]:[mount point]
 # 
