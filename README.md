@@ -1,5 +1,5 @@
 # Chia-Farm-Tools
-Various scripts for managing a chia farm
+This page has sarious scripts and commands for managing a chia farm.
 
 ## Get Launcher ID
 To get the pool launcher id, from the gui, go to Pooling -> press three dots on top right of nft card -> select "View Pool Login ID".  
