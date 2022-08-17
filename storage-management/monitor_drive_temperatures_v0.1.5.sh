@@ -31,6 +31,7 @@ LOB=``
 LOF=``
 bold=`(tput bold)`
 reset=`(tput sgr0)`
+time_pass=0
 
 if [ ! -z $1 ]; then
   mount_point=$1
@@ -219,7 +220,7 @@ while true; do
           if [ ! -z $INVALIDS ]; then
             printf "\n$(tput setaf 7) Possible invalid mount on $INVALIDS."
           fi
-          printf "\n${hibo}${hib}${hif}:: hi $HIT$degrees ::${reset}$(tput setaf 2)$HITEMP_DRIVES"
+          printf "\n${hibo}${hib}${hif}:: hi $HIT$degrees ::${reset}$(tput setaf 3)$HITEMP_DRIVES"
           printf "\n${lobo}${lob}${lof}:: lo $LOT$degrees ::${reset}$(tput setaf 2)$LOTEMP_DRIVES\n\n"
           SECONDS=0
         fi
