@@ -68,13 +68,13 @@ while true; do
       done
       DRIVE_COUNT=$(($DRIVE_COUNT + 1))
       if [ $((SMART)) -eq 1 ]; then
-        temp=`smartctl -A ${drv[$i]} 2>/dev/null | grep "Current Drive Temperature:" | awk '{print $4}'`
+        temp=`smartctl -A ${drv[$i]//[[:digit:]]/} 2>/dev/null | grep "Current Drive Temperature:" | awk '{print $4}'`
         if [ -z $temp ]; then
-          temp=`smartctl -A ${drv[$i]} 2>/dev/null | grep "Temperature_Celsius" | awk '{print $10}' | sed 's/^0//'`
+          temp=`smartctl -A ${drv[$i]//[[:digit:]]/} 2>/dev/null | grep "Temperature_Celsius" | awk '{print $10}' | sed 's/^0//'`
         fi
       fi
       if [ $((DTEMP)) -eq 1 ] && [ -z $temp ]; then
-        TEMP=`hddtemp ${drv[$i]} 2>/dev/null | awk '{print $4}'`
+        TEMP=`hddtemp ${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
         if [ ! -z $TEMP ]; then
           temp=${TEMP::-2}
         else
