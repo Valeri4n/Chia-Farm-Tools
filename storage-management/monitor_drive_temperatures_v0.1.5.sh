@@ -90,7 +90,7 @@ while true; do
       fi
       if [ $((temp)) -gt 0 ] && ([ $((temp)) -ge $((HITEMP)) ] || [ -z $HITEMP ]); then
         part_label=`lsblk -o label ${drv[$i]} | sed -n '2p'`
-        if [ -z $part_label ]; then
+        if [ -z "$part_label" ]; then
           drMNT=" ${drv[$i]//[[:digit:]]/}:$mnt"
         else
           drMNT=" $part_label:$mnt"
@@ -106,7 +106,7 @@ while true; do
         if [ -z $LOTEMP ]; then LOTEMP=$temp; fi
       elif [ $((temp)) -gt 0 ] && ([ $((temp)) -le $((LOTEMP)) ] || [ -z $LOTEMP ]); then
         part_label=`lsblk -o label ${drv[$i]} | sed -n '2p'`
-        if [ -z $part_label ]; then
+        if [ -z "$part_label" ]; then
           drMNT=" ${drv[$i]//[[:digit:]]/}:$mnt"
         else
           drMNT=" $part_label:$mnt"
