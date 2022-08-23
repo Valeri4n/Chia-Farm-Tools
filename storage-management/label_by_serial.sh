@@ -32,3 +32,6 @@ for i in {a..z}; do
     fi
   done
 done
+tput setaf 3
+echo "Serial $serial not found."
+tput sgr0
