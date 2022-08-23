@@ -3,9 +3,10 @@
 # Locate a drive by serial number and apply a label
 #
 # Run as ./label_by_serial.sh serial label
+# If the partition has a number, include the number in e2label /dev/sd$i$j[number] $label
 #
 # This is useful when drive name is not known to apply a partition label for the drive's physical location.
-# If the partition has a number, include the number in e2label /dev/sd$i$j[number] $label
+# To clear a drive label or to find drive name and mountpoint, press enter for blank label
 
 if [ ! "`whoami`" = "root" ]; then
   printf "\nPlease run script as root. Exiting\n\n"
