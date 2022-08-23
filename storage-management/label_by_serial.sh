@@ -6,7 +6,8 @@
 # If the partition has a number, include the number in e2label /dev/sd$i$j[number] $label
 #
 # This is useful when drive name is not known to apply a partition label for the drive's physical location.
-# To clear a drive label or to find drive name and mountpoint, press enter for blank label
+# To clear a drive label or to find drive name and mountpoint without a label, press enter for blank label
+# -l to find drive and not replace label
 
 if [ ! "`whoami`" = "root" ]; then
   tput setaf 3
