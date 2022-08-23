@@ -1,4 +1,5 @@
 #!/bin/sudo bash
+# Written by Valerian - Copyright 2022
 # Locate a drive by serial number and apply a label
 #
 # Run as ./label_by_serial.sh serial label
