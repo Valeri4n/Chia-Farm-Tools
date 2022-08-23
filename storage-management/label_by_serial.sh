@@ -7,7 +7,7 @@
 #
 # This is useful when drive name is not known to apply a partition label for the drive's physical location.
 # To clear a drive label or to find drive name and mountpoint without a label, press enter for blank label
-# -l to find drive and not replace label
+# -f to find drive and not replace label
 
 if [ ! "`whoami`" = "root" ]; then
   tput setaf 3
@@ -16,6 +16,22 @@ if [ ! "`whoami`" = "root" ]; then
   exit 1
 fi
 
+Flags()
+{
+  while true; do
+    case "$1" in
+      -f|--find-only)
+        FND=1
+        shift 1;;
+      --)
+        break;;
+      *)
+        break;;
+    esac
+  done
+}
+
+Flags "$@"
 serial=$1
 label=$2
 
@@ -29,7 +45,7 @@ for i in {a..z}; do
     found=`smartctl -i /dev/sd$i$j 2>/dev/null | grep $serial`
     if [ ! -z "$found" ]; then
       echo "$serial /dev/sd$i$j at $label"
-      e2label /dev/sd$i$j $label
+      if [ $((FND)) -ne 1 ]; then e2label /dev/sd$i$j $label; fi
       lsblk -o name,label,mountpoint,size | grep sd$i$j
       exit 1
     fi
