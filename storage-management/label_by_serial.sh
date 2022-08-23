@@ -9,7 +9,9 @@
 # To clear a drive label or to find drive name and mountpoint, press enter for blank label
 
 if [ ! "`whoami`" = "root" ]; then
+  tput setaf 3
   printf "\nScript must be run as root. Exiting\n\n"
+  tput sgr0
   exit 1
 fi
 
