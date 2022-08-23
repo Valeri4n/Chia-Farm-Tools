@@ -9,7 +9,7 @@
 # To clear a drive label or to find drive name and mountpoint, press enter for blank label
 
 if [ ! "`whoami`" = "root" ]; then
-  printf "\nPlease run script as root. Exiting\n\n"
+  printf "\nScript must be run as root. Exiting\n\n"
   exit 1
 fi
 
