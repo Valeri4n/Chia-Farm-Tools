@@ -4,7 +4,6 @@
 # for all drive names entered after calling the script
 # ./drive_temp_check.sh sda sdrw sddt    , etc.
 
-
 set_color()
 {
   if [ $((temp)) -ge $((hi_alarm)) ]; then
@@ -17,6 +16,23 @@ set_color()
     temp_color=`(tput setaf 6)` # cyan
   else
     temp_color=`(tput setaf 5)` # magenta
+  fi
+}
+
+get_temp()
+{
+  temp=`smartctl -a /dev/"${drive[$i]}" 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
+  if [ -z $temp ]; then
+    temp=`smartctl -A ${drv[$i]//[[:digit:]]/} 2>/dev/null | grep "Temperature_Celsius" | awk '{print $10}' | sed 's/^0//'`
+  fi
+  if [ -z $temp ]; then
+    TEMP=`hddtemp ${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
+    if [ ! -z $TEMP ]; then
+      temp=${TEMP::-2}
+    else
+      echo "Unable to get temperature on ${drive[$i]}. Check if hddtemp is installed. Exiting"
+      exit 1
+    fi
   fi
 }
 
@@ -50,7 +66,7 @@ while true; do
     echo "                                  $header"
   fi
   for (( i=0; i<=$imax; i++ )); do
-    temp=`smartctl -a /dev/"${drive[$i]}" 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
+    get_temp
     set_color
     temps="$temps   $temp_color$temp$normal"
   done
