@@ -28,7 +28,7 @@ get_temp()
   if [ -z $temp ]; then
     temp=`hddtemp -n /dev/${drv[$i]//[[:digit:]]/}`
 #    TEMP=`hddtemp /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
-    if [ -z $TEMP ]; then
+    if [ -z $temp ]; then
 #      temp=${TEMP::-2}
 #    else
       echo "Unable to get temperature on ${drive[$i]}. Check if hddtemp is installed. Exiting"
