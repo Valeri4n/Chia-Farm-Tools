@@ -21,15 +21,16 @@ set_color()
 
 get_temp()
 {
-  temp=`smartctl -a /dev/"${drive[$i]}" 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
+  temp=`smartctl -a /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
   if [ -z $temp ]; then
-    temp=`smartctl -A ${drv[$i]//[[:digit:]]/} 2>/dev/null | grep "Temperature_Celsius" | awk '{print $10}' | sed 's/^0//'`
+    temp=`smartctl -A /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | grep 'Temperature_Celsius' | awk '{print $10}' | sed 's/^0//'`
   fi
   if [ -z $temp ]; then
-    TEMP=`hddtemp ${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
-    if [ ! -z $TEMP ]; then
-      temp=${TEMP::-2}
-    else
+    temp=`hddtemp -n /dev/${drv[$i]//[[:digit:]]/}`
+#    TEMP=`hddtemp /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
+    if [ -z $TEMP ]; then
+#      temp=${TEMP::-2}
+#    else
       echo "Unable to get temperature on ${drive[$i]}. Check if hddtemp is installed. Exiting"
       exit 1
     fi
