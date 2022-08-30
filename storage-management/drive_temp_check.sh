@@ -4,6 +4,7 @@
 # for all drive names entered after calling the script
 # ./drive_temp_check.sh sda sdrw sddt    , etc.
 
+echo "220830-15:44"
 set_color()
 {
   if [ $((temp)) -ge $((hi_alarm)) ]; then
