@@ -1,6 +1,7 @@
 #!/bin/sudo bash
 # Written by Valerian - Copyright 2022
-# This script looks at drive temperatures for all drive names entered after calling the script
+# This script looks at drive temperatures every minute
+# for all drive names entered after calling the script
 # ./drive_temp_check.sh sda sdrw sddt    , etc.
 
 if [ ! "`whoami`" = "root" ]; then
