@@ -10,9 +10,9 @@ set_color()
     temp_color=`(tput setaf 1)` # red
   elif [ $((temp)) -gt $((hi_alert)) ]; then
     temp_color=`(tput setaf 3)` # yellow
-  elif [ $((temp)) -gt $((lo_alert)) ]; then
+  elif [ $((temp)) -ge $((lo_alert)) ]; then
     temp_color=`(tput setaf 2)` # green
-  elif [ $((temp)) -gt $((lo_alarm)) ]; then
+  elif [ $((temp)) -ge $((lo_alarm)) ]; then
     temp_color=`(tput setaf 6)` # cyan
   else
     temp_color=`(tput setaf 5)` # magenta
