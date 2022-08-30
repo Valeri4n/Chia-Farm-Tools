@@ -4,10 +4,34 @@
 # for all drive names entered after calling the script
 # ./drive_temp_check.sh sda sdrw sddt    , etc.
 
+
+set_color()
+{
+  if [ $((temp)) -ge $((hi_alarm)) ]; then
+    temp_color=`(tput setaf 1)` # red
+  elif [ $((temp)) -gt $((hi_alert)) ]; then
+    temp_color=`(tput setaf 3)` # yellow
+  elif [ $((temp)) -gt $((lo_alert)) ]; then
+    temp_color=`(tput setaf 2)` # green
+  elif [ $((temp)) -gt $((lo_alarm)) ]; then
+    temp_color=`(tput setaf 6)` # cyan
+  else
+    temp_color=`(tput setaf 5)` # magenta
+  fi
+}
+
 if [ ! "`whoami`" = "root" ]; then
     printf "\nPlease run script as root. Exiting\n\n"
     exit 1
 fi
+
+tput setaf 7
+normal=`(tput setaf 7)`
+
+hi_alarm=50 # >=
+hi_alert=45 # >
+lo_alert=30 # <
+lo_alarm=25 # <=
 
 if [ $# -eq 0 ]; then echo "$0: Missing arguments"; exit 1; fi
 drive=( "$@" )
@@ -27,7 +51,8 @@ while true; do
   fi
   for (( i=0; i<=$imax; i++ )); do
     temp=`smartctl -a /dev/"${drive[$i]}" 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
-    temps="$temps   $temp"
+    set_color
+    temps="$temps   $temp_color$temp$normal"
   done
   today=`date`
   cnt=$(($cnt + 1))
