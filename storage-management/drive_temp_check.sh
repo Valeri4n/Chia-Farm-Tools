@@ -21,13 +21,13 @@ set_color()
 
 get_temp()
 {
-  temp=`smartctl -a /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
+  temp=`smartctl -a /dev/${drive[$i]//[[:digit:]]/} 2>/dev/null | grep 'Current Drive Temperature:' | awk '{print $4}'`
   if [ -z $temp ]; then
-    temp=`smartctl -A /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | grep 'Temperature_Celsius' | awk '{print $10}' | sed 's/^0//'`
+    temp=`smartctl -A /dev/${drive[$i]//[[:digit:]]/} 2>/dev/null | grep 'Temperature_Celsius' | awk '{print $10}' | sed 's/^0//'`
   fi
   if [ -z $temp ]; then
-    temp=`hddtemp -n /dev/${drv[$i]//[[:digit:]]/}`
-#    TEMP=`hddtemp /dev/${drv[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
+    temp=`hddtemp -n /dev/${drive[$i]//[[:digit:]]/}`
+#    TEMP=`hddtemp /dev/${drive[$i]//[[:digit:]]/} 2>/dev/null | awk '{print $4}'`
     if [ -z $temp ]; then
 #      temp=${TEMP::-2}
 #    else
