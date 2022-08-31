@@ -42,7 +42,6 @@ if [ ! "`whoami`" = "root" ]; then
     exit 1
 fi
 
-echo "220830-15:44"
 tput setaf 7
 normal=`(tput setaf 7)`
 
