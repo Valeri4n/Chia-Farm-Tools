@@ -2,6 +2,7 @@
 # Written by Valerian - Copyright 2022
 # This script retrieves drive serial numbers with labels
 # and current name with output to file
+# Modify the label pattern for your use case on line 17
 
 if [ ! "`whoami`" = "root" ]; then
     printf "\nPlease run script as root. Exiting\n\n"
