@@ -1,5 +1,5 @@
 # Chia-Farm-Tools
-This page has various scripts and commands for managing a chia farm.
+This page has various scripts and commands for managing a chia farm in Linux.
 
 ## Get Launcher ID
 ### GUI
