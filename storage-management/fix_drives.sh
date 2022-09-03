@@ -1,6 +1,6 @@
 #!/bin/sudo bash
 # Written by Valerian - Copyright 2022
-# This script will unmount, run fsck, and mount drives with errors sowhn in dmesg.
+# This script will unmount, run fsck, and mount drives with errors shown in dmesg.
 
 start="No errors found"
 dmesg | grep -wv journal | grep EXT4 | awk '{print $3}' | sed 's/(//' | sed 's/)://' | sort -t: -u -k1,1 | while read drive; do
