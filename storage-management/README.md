@@ -3,3 +3,5 @@ Captures the current storage array for each drive label, size, name, mountpoint,
 #### Auto Add fstab Entries  
 Run as sudo  
 `for i in {"",{a..z}}; do for j in {a..z}; do echo "/dev/sd$i$j /mnt/sd$i$j auto defaults,nofail 0 0" >> /etc/fstab; done; done`
+#### Auto Add Chia Plot Directories  
+`for i in {"",{a..z}}; do for j in {a..z}; do chia plots add -d /mnt/sd$i$j; done; done`
