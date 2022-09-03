@@ -1,4 +1,4 @@
-#### get_drive_serials.sh  
+#### get_drive_storage_config.sh  
 Captures the current storage array for each drive label, size, name, mountpoint, and serial number for future comparison for automatic failure detection. If label includes physical location, it will make locating failed drives easier. Once the drive fails in the system, this information may no longer be available. This script will preserve that information.  
 #### Auto Add fstab Entries  
 Run as sudo  
