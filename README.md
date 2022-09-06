@@ -13,6 +13,6 @@ To get the pool launcher id, from the gui, go to Pooling -> press three dots on 
   - If you have multiple wallets, wait a second after pressing enter and press enter again. It'll pull the wallet that's currently synced.  
 
 
-## Make Live Copy of DB  
+## Make Live Copy of Chia DB  
 Make an online copy of the db without having to take your farmer down using sqlite3  
 `sqlite3 /home/$user/.chia/mainnet/db/blockchain_v2_mainnet.sqlite "vacuum into '/home/$user/tmp/blockchain_v2_mainnet.sqlite'"`
