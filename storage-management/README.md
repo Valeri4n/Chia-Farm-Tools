@@ -10,4 +10,4 @@ Run as sudo
 I have found the `nofail` option to be an important addition in ubuntu if there is potential for a drive to not be present when booting. Sometimes ubuntu will boot into emergency mode until the offending fstab entry is removed if a drive isn't present. Adding `nofail` prevents this and allows normal booting, in my experience.  
 ### Auto Add Chia Plot Directories  
 Change ${server} to your specific location or type in `server=[location]` prior to running the command below, specifying the [location]. This can be local drive mounts or mounted network shares.  
-`for i in {"",{a..z}}; do for j in {a..z}; echo "${server}/sd$i$j added to chia plots config.yaml file"; chia plots add -d ${server}/sd$i$j; done; done`  
+`for i in {"",{a..z}}; do for j in {a..z}; do echo "${server}/sd$i$j added to chia plots config.yaml file"; chia plots add -d ${server}/sd$i$j; done; done`  
