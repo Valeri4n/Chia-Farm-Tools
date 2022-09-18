@@ -5,9 +5,9 @@ This script will unmount, run fsck, and mount drives with errors shown in dmesg.
 Captures the current storage array for each drive label, size, name, mountpoint, and serial number for future comparison for automatic failure detection. If label includes physical location, it will make locating failed drives easier. Once the drive fails in the system, this information may no longer be available. This script will preserve that information.  
 ## Commands  
 ### Create Directories 
-Change ownership of /mnt so can add directories as user
+Change ownership of /mnt so can add directories as user  
 `chown -R $USER /mnt; chgrp -R $USER /mnt`  
-Make directories
+Make directories  
 `for i in {"",{a..z}}; do for j in {a..z}; do mkdir /mnt/sd$i$j; done; done` 
 ### Auto Add fstab Entries  
 `for i in {"",{a..z}}; do for j in {a..z}; do echo "/dev/sd$i$j /mnt/sd$i$j auto defaults,nofail 0 0" | sudo tee -a /etc/fstab; done; done`  
