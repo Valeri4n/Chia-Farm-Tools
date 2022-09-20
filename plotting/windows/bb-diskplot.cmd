@@ -17,4 +17,4 @@ title %date% %time% night-mode BB-diskplot %THREADS% threads %RAM%gb ram
   set LOG_FILE=logs/%DATETIME%.log
   if not exist logs mkdir logs
 
-  powershell "'%BB_DIR%\bladebit.exe' -t %THREADS% -c %NFT% -f %FARMER% diskplot -b %BUCKETS% --cache %RAM%G -t1 %TEMP_DIR% %FINAL_DIR% | tee '%LOG_FILE%'"
+  powershell ".\bladebit.exe -t %THREADS% -c %NFT% -f %FARMER% diskplot -b %BUCKETS% --cache %RAM%G -t1 %TEMP_DIR% %FINAL_DIR% | tee '%LOG_FILE%'"
