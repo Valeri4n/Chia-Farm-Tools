@@ -10,7 +10,7 @@ set BB_DIR=ENTER BB FOLDER HERE
 
 
 
-cd /d %BB%
+cd /d %BB_DIR%
 
 IF EXIST %TEMP_DIR%"*.tmp" DEL %TEMP_DIR%\"*.tmp"
 
