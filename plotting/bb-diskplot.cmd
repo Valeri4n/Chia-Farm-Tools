@@ -1,4 +1,5 @@
 :: Copyright 2022 by Valerian
+:: This works for bladebit-v2.0.0-alpha2-windows-x86-64\
 
 @echo off
 mode con:cols=100 lines=2500
@@ -16,4 +17,4 @@ title %date% %time% night-mode BB-diskplot %THREADS% threads %RAM%gb ram
   set LOG_FILE=logs/%DATETIME%.log
   if not exist logs mkdir logs
 
-  powershell "bladebit-v2.0.0-alpha2-windows-x86-64\bladebit.exe -t %THREADS% -c %NFT% -f %FARMER% diskplot -b %BUCKETS% --cache %RAM%G -t1 Y:\ Y:\ | tee '%LOG_FILE%'"
+  powershell "bladebit.exe -t %THREADS% -c %NFT% -f %FARMER% diskplot -b %BUCKETS% --cache %RAM%G -t1 Y:\ Y:\ | tee '%LOG_FILE%'"
