@@ -5,3 +5,5 @@ NFT is the contract key.
 TEMP_DIR is the temporary plot folder.  
 BB_DIR is where the bladebit.exe file is. These two scripts should be in the saem folder.  
 FINAL_DIR is the plot final directory if you want it in a location other than the TEMP_DIR. I use robocopy to move them from here so BB can continue without having to move it.  
+
+Can change the parameters in the script with RAM, THREADS, and BUCKETS to tweak it to test times. Just let the whole thing continue running, make the changes you want and save the file, and the next plot will pick up the new settings without stopping it.  
