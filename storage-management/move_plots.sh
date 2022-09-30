@@ -59,7 +59,7 @@ while true; do
       if [ ! -z $finLOC ]; then
         DT=`date +"%y-%m-%d"`; TM=`date +"%T"`
         printf "\n\n$DT $TM - Moving ${plot:0:36}...plot to $finLOC\n"
-        ls $plot | xargs -n1 -P1 -I% rsync -vhW --chmod=0766 --progress --remove-source-files % $finLOC/ 2>/dev/null
+        ls $plot | xargs -P1 -I% rsync -vhW --chmod=0766 --progress --remove-source-files % $finLOC/ 2>/dev/null
         if [[ $? -gt 0 ]]; then
           DT=`date +"%y-%m-%d"`; TM=`date +"%T"`
           printf "\r$DT $TM File still incoming. Waiting 10 minutes...\n"
