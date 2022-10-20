@@ -9,7 +9,8 @@ Change ownership of /mnt so can add directories as user
 `chown -R $USER /mnt; chgrp -R $USER /mnt`  
   
 Make directories  
-`for i in {"",{a..z}}; do for j in {a..z}; do mkdir /mnt/sd$i$j; done; done` 
+`for i in {"",{a..z}}; do for j in {a..z}; do sudo mkdir /mnt/sd$i$j; done; done` 
+`sudo chown -R $USER: /mnt`
 ### Auto Add fstab Entries  
 `for i in {"",{a..z}}; do for j in {a..z}; do echo "/dev/sd$i$j /mnt/sd$i$j auto defaults,nofail 0 0" | sudo tee -a /etc/fstab; done; done`  
   
