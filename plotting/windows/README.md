@@ -10,6 +10,6 @@ Can change the parameters in the script with RAM, THREADS, and BUCKETS to tweak 
   
 ### File Transfer with Robocopy  
 The following commands work in command prompt to run robocopy. These can be pasted into a batch file and run that way or directly in command prompt.  
-`set SRC="Y:"`  
-`set DEST="D:"`  
-`robocopy %SRC% %DEST% *.plot /j /mov /mon:1 /is /eta /nooffload`  
+`set SRC="Y:"  
+set DEST="D:"  
+robocopy %SRC% %DEST% *.plot /j /mov /mon:1 /is /eta /nooffload`  
