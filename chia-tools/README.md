@@ -1,4 +1,11 @@
-### Get pool stats
+## TMUX  
+I've found tmux to be a great way to display multiple panes in one window for showing status. This will create a persistent session that can be connected to from any ssh connection or terminal within the host and will maintain the session if the terminal is disconnected.
+  
+To install tmux: `sudo apt install tmux`  
+Add a new session: `tmux new -s name`  
+Attach to that session: `tmux a -t chia`  
+Create multiple panes inside that window with `ctrl-b %` or `ctrl-b "`  
+## Get pool stats
 Use whichever of these displays properly. Should display as follows:  
   
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>Number of plots:</sup>  
