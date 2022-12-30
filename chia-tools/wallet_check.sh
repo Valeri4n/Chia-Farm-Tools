@@ -3,9 +3,14 @@
 #
 # This script will get current chia price and wallet for current value
 
-xch=$(curl https://www.coingecko.com/en/coins/chia -s | grep -i "today is" | awk -F">" '{print $5}' | awk -F"<" '{print $1}' | cut -c2-)
-wallet=$(echo | chia wallet show | grep Total | sed -n "1p" | head -c 44 | awk '{print $3}')
-total=`echo "$xch * $wallet" | bc | xargs printf "%.2f"`
-value=`printf "$%'.2f\n" $total`
-printf "XCH=\$$xch  Wallet=$wallet\n"
-printf "\n Current Value = $value\n\n"
+syncing=`echo|chia wallet show|grep Syncing|wc -l`
+if [ $((syncing)) -ge 1 ]; then
+  printf "Wallet is syncing. Standby."
+else
+  xch=$(curl https://www.coingecko.com/en/coins/chia -s | grep -i "today is" | awk -F">" '{print $5}' | awk -F"<" '{print $1}' | cut -c2-)
+  wallet=$(echo | chia wallet show | grep Total | sed -n "1p" | head -c 44 | awk '{print $3}')
+  total=`echo "$xch * $wallet" | bc | xargs printf "%.2f"`
+  value=`printf "$%'.2f\n" $total`
+  printf "XCH=\$$xch  Wallet=$wallet\n"
+  printf "\n Current Value = $value\n\n"
+fi
