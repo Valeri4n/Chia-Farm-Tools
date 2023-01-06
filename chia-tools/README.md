@@ -1,3 +1,5 @@
+Consider donating if you find these tools helpful. My public wallet address:
+XCH: xch1ejfl6f8czcaz9dpuqysgwznv0zk706d6mte8tutxh7de6kr0czqqzl606v  
 ## TMUX  
 I've found tmux to be a great way to display multiple panes in one window for showing status. This will create a persistent session that can be connected to from any ssh connection or terminal within the host and will maintain the session if the terminal is disconnected. Various scripts and status commands can tehn be run within each pane.
   
