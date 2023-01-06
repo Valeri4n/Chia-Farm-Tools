@@ -227,7 +227,7 @@ while read -r line; do
       wid=$(echo $line|awk '{print $13}'|rev|cut -c3-|rev)
       file="$file_id-txn-wallet_id_$wid-$DT-$TM.csv"
       printf "\n$file_id Transactions for wallet id $wid in file $file\n\n"
-      printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" "Date" "Time" "xch" "xchTotal" "Price" "Income" "TotalIncome" "Status" "Transaction" "Address"|tee $file
+      printf "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n" "Date" "Time" "xch" "xchTotal" "Price" "Income" "TotalIncome" "Status" "Transaction" "Address"|tee $file
       header=false
     fi
   fi
@@ -280,10 +280,10 @@ while read -r line; do
         get_xch_price
         xch=`echo "$xch + $xamount"|bc`
         xincome=`echo "$xprice * $xamount"|bc -l`
-        usd_income=`echo $xincome|xargs printf "%.*f" 2`
+        usd_income=`echo $xincome|xargs printf "$%'.2f"`
         income_total=`echo "$income_total + $xincome"|bc -l`
-        usd_total=`echo $income_total|xargs printf "%.*f" 2`
-        printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" $xdate $xtime $xamount $xch $xprice "\$$usd_income" "\$$usd_total" $xstatus $xid $xaddress|tee -a $file
+        usd_total=`echo $income_total|xargs printf "$%'.2f"`
+        printf "%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n" $xdate $xtime $xamount $xch $xprice $usd_income $usd_total $xstatus $xid $xaddress|tee -a $file
         found_range=true
       elif $found_range; then
         break
@@ -296,7 +296,7 @@ done < <(echo|chia wallet get_transactions --no-paginate --reverse)
 if [ -z $blocks ]; then blocks="No"; fi
 echo
 echo "$blocks blocks won during this period"
-echo "$xch xch earned during this period with income of \$$usd_total"
+echo "$xch xch earned during this period with income of $usd_total"
 mod_xch=`echo $xch|tr -d '.'`
 if [[ $((mod_xch)) -eq 0 ]] || [ -z $mod_xch ]; then
   echo "No XCH was seen during this period. If this is in error, please run program again."
