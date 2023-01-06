@@ -25,7 +25,7 @@ Use whichever of these displays properly. Should display as follows:
 This script will get current chia price and wallet for current value. To run continuously, use watch:  
 `watch -n 60 ./wallet_check.sh`  
 ### wallet_transaction_capture.sh  
-This script will get all wallet transactions for a given time period, or all transactions, and include the chia price to the nearest hour prior to the transaction.  
+This script will get all wallet transactions for a given time period, or all transactions, and include the chia price to the nearest hour prior to the transaction. Output file is csv format with semicolon delimiter (;).  
   
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>no flags gets all transactions</sup>  
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>-pm gets prior month</sup>  
