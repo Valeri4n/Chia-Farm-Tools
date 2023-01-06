@@ -182,7 +182,7 @@ while true; do
     -pm|--previous-month)
       match_xmonth=`date +%m`
       match_xyear=`date +%Y`
-      if [ $((match_xmonth)) - eq 1 ]; then
+      if [ $((match_xmonth)) -eq 1 ]; then
         match_xmonth=12
         match_xyear=$((match_xyear - 1))
       fi
