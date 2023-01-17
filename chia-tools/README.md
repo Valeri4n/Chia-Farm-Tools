@@ -22,7 +22,7 @@ Use whichever of these displays properly. Should display as follows:
 `watch -n 20 "echo|chia plotnft show|sed -n -e '12p;15,19p'|sed -n 'h;n;G;p;n;p;n;p;n;p;n;p'"`  
 `watch -n 20 "echo|chia plotnft show|sed -n -e '8p;11,15p'|sed -n 'h;n;G;p;n;p;n;p;n;p;n;p'"`  
 ### wallet_check.sh  
-This script will get current chia price and wallet for current value and will run on a continuous loop    
+This script will get current chia price and wallet for current value and will run on a continuous loop.    
 ### wallet_transaction_capture.sh  
 This script will get all wallet transactions for a given time period, or all transactions, and include the chia price to the nearest hour prior to the transaction. Output file is csv format with semicolon delimiter ( ; ).  
   
