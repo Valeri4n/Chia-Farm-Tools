@@ -33,7 +33,7 @@ while true; do
     oldwval="*"
     oldvval="*"
   else
-    xch=$(curl https://www.coingecko.com/en/coins/chia -s | grep -i "today is" | awk -F">" '{print $5}' | awk -F"<" '{print $1}' | cut -c2-)
+    xch=$(curl https://www.coingecko.com/en/coins/chia -s | grep -i "Current price of Chia" | awk -F '\\$' '{print $2}' | awk '{print $1}' | sed -n 1p)
     wallet=$(echo | chia wallet show | grep Total | sed -n "1p" | head -c 44 | awk '{print $3}')
     if [ -z $xch ]; then
       xch=$oldxch
