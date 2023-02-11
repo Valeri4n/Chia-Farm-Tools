@@ -1,4 +1,4 @@
-When you kick off this with the run script, it'll continue plotting forever. You will want to also have a robocopy instance running to move plots where you want them. To make changes to plotting parameters, simply change them on the diskplot script and save it. That way, the next time it starts a new plot, it'll get the updated settings automatically and you can just let it keep running without having to stop it to make adjustments.  
+Use both scripts together. Launch with the bladebit-diskplot_run.cmd script. When you kick off this with the run script, it'll continue plotting forever. You will want to also have a robocopy instance running to move plots where you want them. To make changes to plotting parameters, simply change them on the diskplot script and save it. That way, the next time it starts a new plot, it'll get the updated settings automatically and you can just let it keep running without having to stop it to make adjustments.  
 
 FARMER is the puble farmer key.  
 NFT is the contract key.  
