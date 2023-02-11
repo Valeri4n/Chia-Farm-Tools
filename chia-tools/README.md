@@ -17,7 +17,7 @@ Use whichever of these displays properly. Should display as follows:
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>Current difficulty:</sup>   
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>Points balance:</sup>   
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>Points found (24h):</sup>   
-&nbsp;&nbsp;&nbsp;&nbsp; <sup>Percent Successful Points (sh4):</sup>   
+&nbsp;&nbsp;&nbsp;&nbsp; <sup>Percent Successful Points (24h):</sup>   
   
 `watch -n 20 "echo|chia plotnft show|sed -n -e '12p;15,19p'|sed -n 'h;n;G;p;n;p;n;p;n;p;n;p'"`  
 `watch -n 20 "echo|chia plotnft show|sed -n -e '8p;11,15p'|sed -n 'h;n;G;p;n;p;n;p;n;p;n;p'"`  
