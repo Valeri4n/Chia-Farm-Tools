@@ -3,7 +3,7 @@ I've found tmux to be a great way to display multiple panes in one window for sh
   
 To install tmux: `sudo apt install tmux`  
 Add a new session: `tmux new -s name`  
-Attach to that session: `tmux a -t chia`  
+Attach to that session: `tmux a -t name`  
 Create multiple panes inside that window with `ctrl-b` followed by `%` or `ctrl-b` followed by `"`  
 <br/>
 Mouse control allows for selecting the active pane and resizing panes by dragging pane lines with the mouse.  
