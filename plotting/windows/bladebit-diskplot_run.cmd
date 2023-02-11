@@ -1,4 +1,3 @@
-:: Copyright 2022 by Valerian
 @echo off
 setlocal enableextensions disabledelayedexpansion
 
