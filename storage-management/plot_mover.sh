@@ -14,8 +14,8 @@ fi
 echo
 echo "Using plotter cache drive $1"
 echo "Plots will be moved to automatically fill all drives mounted in $2"
-echo "Simply run plotter indefinitely to plot to cache location"
-echo "Run as many instances of this script as needed to move plots faster"
+echo "Simply run plotter continually plotting to cache location"
+echo "Run as many instances of this script as needed to move plots faster. Multiple instances will deconflict themselves on teh same machine."
 echo
 
 CACHE=$1
