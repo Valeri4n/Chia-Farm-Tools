@@ -30,7 +30,6 @@ MOUNT=/mnt
 printf "\n"
 while true; do
   ls $CACHE/*.plot 2>/dev/null | while read plot; do
- # for plot in $CACHE/*.plot; do
     # ----------------------------------------
     # Look to see if plots exist in cache drive. Don't proceed until they do.
     if [ -f $plot ]; then
