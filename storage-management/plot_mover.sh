@@ -30,6 +30,12 @@ MOUNT=$2
 # Farm drive location - change as needed. It will iterate all drives in this directory
 #MOUNT=/mnt
 
+size_pointer=`ls $CACHE/drive-size-* 2>/dev/null|wc -l`
+if [ $((size_pointer)) -eq 0 ]; then
+  size=`df $CACHE|awk '{print $2}'|sed -n 2p`
+  touch $CACHE/drive-size-$size
+fi
+
 printf "\n"
 while true; do
   ls $CACHE/*.plot 2>/dev/null | while read plot; do
@@ -61,7 +67,7 @@ while true; do
         # Plots exist and there is space in a destination drive. Move all the plot.
         if [ ! -z $finLOC ]; then
           used=`du $CACHE|awk '{print $1}'`
-          size=`ls $CACHE/drive_size--*|awk -F "--" '{print $2}'`
+          size=`ls $CACHE/drive-size-*|awk -F "--" '{print $2}'`
           full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
           DT=`date +"%y-%m-%d"`; TM=`date +"%T"`
           num_plots=`ls $CACHE/*.plot|wc -l`
