@@ -3,6 +3,8 @@
 This script will unmount, run fsck, and mount drives with errors shown in dmesg.
 ### get_drive_storage_config.sh  
 Captures the current storage array for each drive label, size, name, mountpoint, and serial number for future comparison for automatic failure detection. If label includes physical location, it will make locating failed drives easier. Once the drive fails in the system, this information may no longer be available. This script will preserve that information.  
+### plot_mover.sh  
+This script will handle the faster cuda plots going to a cache drive and you can run as many instances of the script as you need to move the plots to the farm faster. You'll want to architect your system/network in a manner to take advantage of the distributed transfer speeds needed. A 10 gbps network link would do, or multiple 1 or 2.5 gbps links, etc., depending on the speed of your plotter. This script is optimized for automatic plotting to fill multiple HDDs at the same time, so you'll want to have at least one HDD with space for each instance of the script you run.  
 ## Commands  
 ### Create Directories 
 Change ownership of /mnt so can add directories as user  
