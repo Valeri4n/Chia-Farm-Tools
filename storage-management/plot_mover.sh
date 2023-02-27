@@ -5,27 +5,30 @@
 # This will look to see if a plot is already being moved. If not, it will move it. If so, it will go to the next plot.
 # Moves plots from the cache drive specified, ex. 5 for cache5, to a storage drive locally
 
-if [ -z $1 ]; then # || [ -z $2 ]; then
-  echo "Must enter system name followed by cache number, 0, 1, etc, unless blank [ server_a 1 ]. Exiting."
-  if [ -z $2 ]; then
-    read -p "Confirm cache is located at /svr/$1/cache, y, n, or CTRL-C: " yn
-    case $yn in
-      [Yy]* ) echo "Continuing with $1/cache/";;
-      [Nn]* ) echo "Exiting"; exit;;
-    esac
-  else
-    exit
-  fi
+if [ -z $1 ] || [ -z $2 ]; then
+  echo "Must enter cache path first followed by final storage path: ./plot_mover.sh /cache/path /mnt/storage"
+  echo "Exiting"
+  exit
 fi
+
+echo
+echo "Using plotter cache drive $1"
+echo "Plots will be moved to automatically fill all drives mounted in $2"
+echo "Simply run plotter indefinitely to plot to cache location"
+echo "Run as many instances of this script as needed to move plots faster"
+echo
+
+CACHE=$1
+MOUNT=$2
 
 #k32 C0=108836000
 #k33 C0=230000000
 #k34 C0=462000000
 
 #Cache drive location - change as needed
-CACHE=/svr/$1/cache$2
-# Farm drive loaction - change as needed. It will iterate all drives in this directory
-MOUNT=/mnt
+#CACHE=/svr/$1/cache$2
+# Farm drive location - change as needed. It will iterate all drives in this directory
+#MOUNT=/mnt
 
 printf "\n"
 while true; do
