@@ -72,7 +72,7 @@ while true; do
           tput_lo=`(tput setaf 6)`
           tput_off=`(tput sgr0)`
           printf "${tput_lo}\n\n$DT-$TM ${tput_hi}$full"%%" with $num_plots plot$mult${tput_lo} -> $finLOC\n${tput_off}"
-          ls $plot | xargs -P1 -I% rsync -vhW --chown=harvest:harvest --chmod=0744 --progress --remove-source-files % $finLOC/
+          ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
           break
         else
           printf "No drive space found. Waiting 60 seconds to recheck.\n"
