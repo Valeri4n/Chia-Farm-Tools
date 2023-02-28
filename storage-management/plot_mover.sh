@@ -24,8 +24,8 @@ echo "Simply run plotter continually plotting to cache location"
 echo "Run as many instances of this script as needed to move plots faster. Multiple instances will deconflict themselves on teh same machine."
 echo
 
-CACHE=$1
-MOUNT=$2
+CACHE=$1 # Source drive
+MOUNT=$2 # Destination directory
 
 #k32 C0=108836000
 #k33 C0=230000000
