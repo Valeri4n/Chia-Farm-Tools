@@ -72,7 +72,7 @@ while true; do
         # ----------------------------------------
         # Plots exist and there is space in a destination drive. Move all the plot.
         if [ ! -z $finLOC ]; then
-          used=`du $CACHE|awk '{print $1}'`
+          used=`du $CACHE|awk '{print $1}'|tail -1`
           size=`ls $CACHE/drive-size-*|awk -F "drive-size-" '{print $2}'`
           full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
           DT=`date +"%y-%m-%d"`; TM=`date +"%T"`
