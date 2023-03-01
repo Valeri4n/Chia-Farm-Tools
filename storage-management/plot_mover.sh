@@ -48,7 +48,8 @@ while true; do
     # ----------------------------------------
     # Look to see if plots exist in cache drive. Don't proceed until they do.
     if [ -f $plot ]; then
-      plot_moving=`ps aux | grep $plot | grep -v -e --color -e "grep" | wc -l`
+      plot_name=`echo $plot|tail -c 96`
+      plot_moving=`ps aux | grep $plot_name | grep -v -e --color -e "grep" | wc -l`
       if [ $((plot_moving )) -eq 0 ]; then
         NFT=$(basename $(find $CACHE -type f -name nft-* 2>/dev/null))
         # determine the plot size
@@ -81,7 +82,7 @@ while true; do
           (( n = RANDOM % 30 ))
           sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
           sleep ${sleep_time}
-          plot_moving=`ps aux | grep $plot | grep -v -e --color | wc -l`
+          plot_moving=`ps aux | grep $plot_name | grep -v -e --color | wc -l`
           if [ $((plot_moving )) -gt 1 ]; then break; fi
           tput_hi=`(tput setaf 3)`
           tput_lo=`(tput setaf 6)`
