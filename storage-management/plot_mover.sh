@@ -7,7 +7,7 @@
 
 # You will need to have a name for the plots being made in both the cache source drive and the destination drive.
 #   This script will move plots to drives with that same pointer file in them.
-#   For example, create a file called nft-SomeName on the cache drive and also put that file into all the drives you want 
+#   For example, create a file called nft_SomeName on the cache drive and nft-SomeName all the drives you want 
 #     filled with those sets of plots and it will fill them. Create a name for each farmer/contract pair and this can be 
 #     used as a way to organize plots. If you only have one farmer and one contract, then you only need one name.
 
