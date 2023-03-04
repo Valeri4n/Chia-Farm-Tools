@@ -95,7 +95,7 @@ while true; do
           break # exit the loop after successfully moving plot
         else
           printf "No drive space found. Waiting 60 seconds to recheck.\n"
-          sleep 10
+          sleep 60
         fi
       fi
     else
