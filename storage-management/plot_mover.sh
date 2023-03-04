@@ -59,7 +59,7 @@ while true; do
         # ----------------------------------------
         # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
         for sd__ in $MOUNT/* ; do
-          if [ "$(ls -la $sd__/.plot-* 2>/dev/null | wc -l)" -eq 0 ]; then # && [[ $NFT == ]]; then
+          if [ "$(ls -la $sd__/.plot-* 2>/dev/null | wc -l)" -eq 0 ]; then
             if [ -f $sd__/$NFT ]; then
               AVAIL=$(df $sd__ --output=avail | awk -F "[[:space:]]+" '{print $1}' | tail -n 1)
               if [ $((AVAIL)) -gt $((plot_size)) ]; then
