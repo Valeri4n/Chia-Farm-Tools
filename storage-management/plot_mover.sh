@@ -34,7 +34,7 @@ MOUNT=$2 # Destination directory where the plots will be stored
 #k33 C0=230000000
 #k34 C0=462000000
 
-# Determine the size of the cache drive for use calculation
+# Determine the size of the cache drive for % usage calculation
 size_pointer=`ls $CACHE/drive-size-* 2>/dev/null|wc -l`
 if [ $((size_pointer)) -eq 0 ]; then
   size=`df $CACHE|awk '{print $2}'|sed -n 2p`
