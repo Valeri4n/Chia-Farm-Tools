@@ -24,7 +24,7 @@ echo "Simply run plotter continually plotting to cache location"
 echo "Run as many instances of this script as needed to move plots faster. Multiple instances will deconflict themselves on the same machine."
 echo
 echo "Source location should have file name nft_SomeName. Each destination drive should have file named nft-SomeName."
-echo "Note the underscore vs the dash. Thsi is necessary to prevent trying to write to cache drive."
+echo "Note the underscore vs the dash. This is necessary to prevent trying to write to cache drive."
 echo
 
 CACHE=$1 # Source drive where the plotter leaves the plots
