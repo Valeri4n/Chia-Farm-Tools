@@ -12,7 +12,7 @@
 #     used as a way to organize plots. If you only have one farmer and one contract, then you only need one name.
 
 if [ -z $1 ] || [ -z $2 ]; then
-  echo "Must enter cache path first followed by final storage path: ./plot_mover.sh /cache/path /mnt/storage"
+  echo "Must enter cache path first followed by final storage mount path: ./plot_mover.sh /cache/path /mnt"
   echo "Exiting"
   exit
 fi
@@ -27,8 +27,10 @@ echo "Source location should have file name nft_SomeName. Each destination drive
 echo "Note the underscore vs the dash. This is necessary to prevent trying to write to cache drive."
 echo
 
-CACHE=$1 # Source drive where the plotter leaves the plots
-MOUNT=$2 # Destination directory where the plots will be stored
+CACHE=$1 # Source drive to move plots from
+MOUNT=$2 # Destination directory where the plot drives are mounted. DO NOT SPECIFY A SPECIFIC DIRECTORY
+# If plot drives are mounted in /mnt, specify as /mnt for destination. Do not specify /mnt/drive_a. This will cause to fail.
+# A future version will fix this.
 
 #k32 C0=108836000
 #k33 C0=230000000
@@ -47,7 +49,7 @@ while true; do
     # ----------------------------------------
     # Look to see if plots exist in cache drive. Don't proceed until they do.
     if [ -f $plot ]; then
-      plot_name=`echo $plot|tail -c 96`
+      plot_name=`echo ${plot##*/}`
       (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
       sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
       sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
