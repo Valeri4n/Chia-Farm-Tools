@@ -79,7 +79,6 @@ flags()
   done
 }
 
-END=false
 manual=false
 flags "${@}"
 flags "${@:3}"
