@@ -79,6 +79,7 @@ flags()
   done
 }
 
+END=false
 manual=false
 flags "${@}"
 flags "${@:3}"
@@ -86,7 +87,7 @@ flags "${@:3}"
 if [ -z $1 ] || [ -z $2 ]; then
   echo "Must enter source first followed by drive destination, -h for help: ./plot_mover.sh /cache/path /mnt"
   echo "Exiting"
-  exit
+  exit 1
 fi
 
 SRC=$1 # Source drive to move plots from
@@ -101,6 +102,10 @@ if ! $manual && [ "$(ls $SRC/drive-size-* 2>/dev/null|wc -l)" -eq 0 ]; then
   size=`df $SRC|awk '{print $2}'|sed -n 2p`
   touch $SRC/drive-size-$size
 fi
+
+# Determine if only one drive was input
+if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=false; fi
+
 echo
 while true; do
   ls $SRC/*.plot 2>/dev/null | while read plot; do
@@ -114,12 +119,16 @@ while true; do
       plot_moving=`ps aux | grep $plot_name|grep -v -e --color -e "grep"|wc -l`
       if [ $((plot_moving )) -eq 0 ]; then
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
+        if ! $manual && [[ -z $NFT ]]; then
+          echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
+          exit 1
+        fi
         # determine the plot size
         plot_size=`du -k "$plot" | cut -f1`
         # ----------------------------------------
         # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
         for drive in $DST/* ; do
-          if $manual; then drive=$DST; fi
+          if $manual || $one_drive; then drive=$DST; fi
           if [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -ge 1 ]; then
             checkDT=`date "+%Y%m%d"`
             checkTM=`date "+%-H%M"`
@@ -163,7 +172,7 @@ while true; do
           fi
         done
         # ----------------------------------------
-        # Plots exist and there is space in a destination drive. Move all the plot.
+        # Plots exist and there is space in a destination drive. Move all the plots.
         if [ ! -z $finLOC ]; then
           used=`du $SRC|awk '{print $1}'|tail -1`
           size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
@@ -184,7 +193,7 @@ while true; do
           # move the plot from SRC to farm
           ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
           finLOC=""
-          break # exit the loop after successfully moving plot
+          break # exit the loop after successfully moving a plot
         else
           printf "No drive space found. Waiting 60 seconds to recheck.\n"
           sleep 60
@@ -198,6 +207,7 @@ while true; do
       sleep 0.2
     fi
   done
+  err=$?; [[ $err != 0 ]] && exit $err
   cnt=$(($cnt + 1))
   sp="-\|/"
   DT=`date +"%m-%d"`; TM=`date +"%T"`
