@@ -51,7 +51,7 @@ help() {
   echo "Options:"
   echo "  -h, --help     Print help, usage and options to run the script."
   echo "  -m, --manual   Used to move plots to a single destination location. This is useful when"
-  echo "			             wanting to fill a single drive with plots. This option will not look for other"
+  echo "                   wanting to fill a single drive with plots. This option will not look for other"
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
   echo "  -v, --version  Provides version number and exits"
   echo 
