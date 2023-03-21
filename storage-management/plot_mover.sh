@@ -76,7 +76,7 @@ flags() {
     esac
   done
 }
-set -x
+
 manual=false
 flags "${@}"
 flags "${@:3}"
