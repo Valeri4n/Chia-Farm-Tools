@@ -119,7 +119,6 @@ while true; do
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
         if ! $manual && [[ -z $NFT ]]; then
           echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
-          END=true
           exit 1
         fi
         # determine the plot size
