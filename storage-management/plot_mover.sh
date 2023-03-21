@@ -59,8 +59,8 @@ help() {
   echo "                   wanting to fill a single drive with plots. This option will not look for other"
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
   echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
-  echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed"
-  echo "                   example: -o 2    -> will permit two concurrent writes to any drive. Min = 2, Max = 9."
+  echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed."
+  echo "                   example: -o 2 -> permits two concurrent writes to adrive. Default 1, min 1, max 9."
   echo "  -v, --version  Provides version number and exits."
   echo 
 }
