@@ -4,7 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 version() {
-  printf "\nplot_mover.sh version = 1.2 \n\n"
+  printf "\nplot_mover.sh version = 1.3 \n\n"
   exit 1
 }
 
@@ -34,7 +34,7 @@ help() {
   echo "The nft-SomeName pointer file must be used in all of destination drives for automatic mode."
   echo "If using manual mode, the destination is specified as /mnt/name. If sending to drive sdf, the"
   echo "destination will be /mnt/sdf for the mountpoint in the example above. The nft pointer file is not"
-  echo "needed if using manual mode."
+  echo "needed if using manual mode. A drive must be mounted in destination unless using -m and -f."
   echo 
   echo "In automatic mode, as many instances of this script may be run as needed to keep the plot cache"
   echo "drive cleared of plots. Multiple instances should deconflict themselves on the same machine by"
@@ -54,11 +54,14 @@ help() {
   echo 
   echo "Options:"
   echo "  -h, --help     Print help, usage and options to run the script."
+  echo "  -f, --force    Force plots to transfer even if destination directory is not a mounted drive."
   echo "  -m, --manual   Used to move plots to a single destination location. This is useful when"
   echo "                   wanting to fill a single drive with plots. This option will not look for other"
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
   echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
-  echo "  -v, --version  Provides version number and exits"
+  echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed"
+  echo "                   example: -o 2    -> will permit two concurrent writes to any drive. Min = 2, Max = 9."
+  echo "  -v, --version  Provides version number and exits."
   echo 
 }
 
@@ -71,6 +74,18 @@ flags() {
       -m|--manual)
         manual=true
         shift 1;;
+      -f|--force)
+        force=true
+        forced=" AND FORCED"
+        shift 1;;
+      -o|--overlap)
+        overlap=true
+        num_overlap=$2
+        if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 1 ] || [ $((num_overlap)) -gt 9 ]; then
+          printf "\nOVERLAP MUST BE USED WITH MIN 1 or MAX 9. -h for help. EXITING."
+          exit 1
+        fi
+        shift 2;;
       -v|--version)
         version
         shift 1;;
@@ -82,10 +97,14 @@ flags() {
   done
 }
 
+overlap=false
 manual=false
+force=false
 flags "${@}"
 flags "${@:3}"
-if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL MODE\n"; fi
+if $force && ! $manual; then printf "\nFORCE MUST BE USED IN MAUAL MODE. EXITING.\n\n"; exit 1; fi
+if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL$forced MODE\n"; fi
+if $overlap; then num_overlap=$(($num_overlap - 1)); else num_overlap=0; fi
 
 if [ -z $1 ] || [ -z $2 ]; then
   echo "Must enter source first followed by drive destination, -h for help: ./plot_mover.sh /cache/path /mnt"
@@ -119,17 +138,18 @@ while true; do
       (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
       sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
       sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-      if [ $(ps aux | grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
+      if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
         if ! $manual && [[ -z $NFT ]]; then
           echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
           exit 1
         fi
         # determine the plot size
-        plot_size=`du -k "$plot" | cut -f1`
+        plot_size=`du -k "$plot"|cut -f1`
         # ----------------------------------------
         # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
         for drive in $DST/* ; do
+          if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
           if $manual || $one_drive; then drive=$DST; fi
           if [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -ge 1 ]; then
             checkDT=`date "+%Y%m%d"`
@@ -151,7 +171,7 @@ while true; do
               fi
             done
           fi
-          if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -eq 0 ]; then
+          if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $num_overlap ]; then
             if $manual; then
               number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
               size_needed=$(($(($number_of_moves+1))*$plot_size))
@@ -161,7 +181,7 @@ while true; do
             if $manual || [ -f $drive/$NFT ]; then
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
-                if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -eq 0 ]; then
+                if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $num_overlap ]; then
                   printf " -> $drive"
                   finLOC=$drive
                   break
@@ -179,10 +199,11 @@ while true; do
           DT=`date +"%m-%d"`; TM=`date +"%T"`
           num_plots=`ls $SRC/*.plot|wc -l`
           if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
+          # Verify file not already being moved and not exceeding max mvoes to destination.
           (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
           sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
           sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-          if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt 1 ]; then continue; fi
+          if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt $num_overlap ]; then continue; fi
           if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
           tput_hi=`(tput setaf 3)`
           tput_lo=`(tput setaf 6)`
