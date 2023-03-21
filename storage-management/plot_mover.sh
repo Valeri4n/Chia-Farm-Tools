@@ -114,8 +114,7 @@ while true; do
       (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
       sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
       sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-      plot_moving=`ps aux | grep $plot_name|grep -v -e --color -e "grep"|wc -l`
-      if [ $((plot_moving )) -eq 0 ]; then
+      if [ $(ps aux | grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
         if ! $manual && [[ -z $NFT ]]; then
           echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
@@ -147,9 +146,6 @@ while true; do
               fi
             done
           fi
-          # (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
-          # sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
-          # sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
           if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -eq 0 ]; then
             if $manual; then
               number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
@@ -160,7 +156,7 @@ while true; do
             if $manual || [ -f $drive/$NFT ]; then
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
-                if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -eq 0 ]; then
+                if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -eq 0 ]; then
                   printf " -> $drive"
                   finLOC=$drive
                   break
@@ -176,14 +172,12 @@ while true; do
           size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
           full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
           DT=`date +"%m-%d"`; TM=`date +"%T"`
-          num_plots=`ls $SRC/*.plot|wc -l`
-          if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
+          if [ $(ls $SRC/*.plot|wc -l) -eq 1 ]; then mult=""; else mult="s"; fi
           (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
           sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
           sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
           if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt 1 ]; then continue; fi
-          plot_moving=`ps aux|grep $plot_name|grep -v -e --color|wc -l`
-          if [ $((plot_moving )) -gt 1 ]; then break; fi
+          if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
           tput_hi=`(tput setaf 3)`
           tput_lo=`(tput setaf 6)`
           tput_off=`(tput sgr0)`
