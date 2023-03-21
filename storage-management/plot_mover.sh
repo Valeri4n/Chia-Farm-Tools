@@ -76,7 +76,7 @@ flags() {
     esac
   done
 }
-
+set -x
 manual=false
 flags "${@}"
 flags "${@:3}"
@@ -172,7 +172,8 @@ while true; do
           size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
           full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
           DT=`date +"%m-%d"`; TM=`date +"%T"`
-          if [ $(ls $SRC/*.plot|wc -l) -eq 1 ]; then mult=""; else mult="s"; fi
+          num_plots=`ls $SRC/*.plot|wc -l`
+          if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
           (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
           sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
           sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
