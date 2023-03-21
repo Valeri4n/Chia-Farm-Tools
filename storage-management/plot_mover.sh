@@ -61,7 +61,7 @@ help() {
   echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
   echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed."
   echo "                   example: -o 2 -> permits two concurrent writes to adrive. Default 1, min 1, max 9."
-  echo "                   Overlap may be useful when filling a single drive, but performance may be reduced."
+  echo "                   Overlap may be useful with low number of drives to fill, but performance may be reduced."
   echo "  -v, --version  Provides version number and exits."
   echo 
 }
