@@ -1,12 +1,14 @@
 #!/bin/bash
 # Copyright 2023 by Valerian
-# version 1.1
 
 # Run as many instances of this script in parallel as needed to move plots from cache.
-# This will look to see if a plot is already being moved. If not, it will move it. If so, it will go to the next plot.
 
-help()
-{
+version() {
+  printf "\nplot_mover.sh version = 1.2 \n\n"
+  exit 1
+}
+
+help() {
   echo 
   echo "The purpose of this script is to move plots from a source location to destination. The plots"
   echo "may be moved locally within the same system or across mounted shared drives across a network."
@@ -55,8 +57,7 @@ help()
   echo 
 }
 
-flags()
-{
+flags() {
   while true; do
     case $1 in
       -h|--help)
@@ -64,12 +65,9 @@ flags()
         shift 1;;
       -m|--manual)
         manual=true
-        printf "\nPLOT MOVER OPERATING IN MANUAL MODE\n"
         shift 1;;
       -v|--version)
         manual=true
-        printf "\nplot_mover.sh version = 1.1\n\n"
-        exit 1
         shift 1;;
       --)
         break;;
@@ -82,6 +80,7 @@ flags()
 manual=false
 flags "${@}"
 flags "${@:3}"
+if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL MODE\n"; fi
 
 if [ -z $1 ] || [ -z $2 ]; then
   echo "Must enter source first followed by drive destination, -h for help: ./plot_mover.sh /cache/path /mnt"
@@ -120,6 +119,7 @@ while true; do
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
         if ! $manual && [[ -z $NFT ]]; then
           echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
+          END=true
           exit 1
         fi
         # determine the plot size
@@ -137,7 +137,7 @@ while true; do
               rsyncTM=`date -r $hidden_rsync "+%-H%M"`
               if [ $((rsyncDT)) -lt $((checkDT)) ]; then
                 rm_hidden_rsync=true
-              elif [ $((rsyncTM)) -lt $((checkTM)) ]; then
+              elif [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
                 rm_hidden_rsync=true
               else
                 rm_hidden_rsync=false
@@ -171,7 +171,7 @@ while true; do
           fi
         done
         # ----------------------------------------
-        # Plots exist and there is space in a destination drive. Move all the plots.
+        # Plots exist and there is space in a destination drive. Move all the plot.
         if [ ! -z $finLOC ]; then
           used=`du $SRC|awk '{print $1}'|tail -1`
           size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
@@ -192,7 +192,7 @@ while true; do
           # move the plot from SRC to farm
           ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
           finLOC=""
-          break # exit the loop after successfully moving a plot
+          break # exit the loop after successfully moving plot
         else
           printf "No drive space found. Waiting 60 seconds to recheck.\n"
           sleep 60
