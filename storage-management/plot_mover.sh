@@ -45,6 +45,10 @@ help() {
   echo "the remote possiblity that a plot could be duplicated, but this is extremely rare and should never"
   echo "occur except possibly when moving large numbers of plots concurrently from the same source drive."
   echo
+  echo "  Automatic Mode:"
+  echo "    Source file = nft_SomeName"
+  echo "    Destination = nft-SomeName"
+  echo
   echo "Usage:"
   echo " ./plot_mover.sh <source> <destination mount location> [options]"
   echo 
@@ -53,6 +57,7 @@ help() {
   echo "  -m, --manual   Used to move plots to a single destination location. This is useful when"
   echo "                   wanting to fill a single drive with plots. This option will not look for other"
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
+  echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
   echo "  -v, --version  Provides version number and exits"
   echo 
 }
