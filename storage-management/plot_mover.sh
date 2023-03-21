@@ -131,11 +131,11 @@ while true; do
             checkTM=`date "+%-H%M"`
             for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
               sleep 1
-              rsyncDT=`date -r $hidden_rsync "+%Y%m%d"`
-              rsyncTM=`date -r $hidden_rsync "+%-H%M"`
-              if [ $((rsyncDT)) -lt $((checkDT)) ]; then
+              rsyncDT=`date -r $hidden_rsync "+%Y%m%d"` 2>/dev/null
+              rsyncTM=`date -r $hidden_rsync "+%-H%M"` 2>/dev/null
+              if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
                 rm_hidden_rsync=true
-              elif [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
+              elif [[ ! -z rsyncTM ]] && [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
                 rm_hidden_rsync=true
               else
                 rm_hidden_rsync=false
