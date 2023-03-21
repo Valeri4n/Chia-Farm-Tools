@@ -67,7 +67,7 @@ flags() {
         manual=true
         shift 1;;
       -v|--version)
-        manual=true
+        version
         shift 1;;
       --)
         break;;
