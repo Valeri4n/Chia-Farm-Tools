@@ -4,7 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 version() {
-  printf "\nplot_mover.sh version = 1.3 \n\n"
+  printf "\nplot_mover.sh version = 1.3.1 \n\n"
   exit 1
 }
 
@@ -44,7 +44,12 @@ help() {
   echo "may have as many plots moving concurrently as there are drives with free space attached. There is"
   echo "the remote possiblity that a plot could be duplicated, but this is extremely rare and should never"
   echo "occur except possibly when moving large numbers of plots concurrently from the same source drive."
-  echo
+  echo 
+  echo "'SomeName' can be any name you choose to use. Associating a name with the farmer/contract pair can be"
+  echo "useful when plotting for multiple farmer or contract keys. The Chia GUI displays a name on the Pool"
+  echo "Overview page that is generated when a Plot NFT is created. This name could be used here as a"
+  echo "convenient means of keeping track of various Plot NFTs."
+  echo 
   echo "  Automatic Mode:"
   echo "    Source file = nft_SomeName"
   echo "    Destination = nft-SomeName"
@@ -59,10 +64,10 @@ help() {
   echo "                   wanting to fill a single drive with plots. This option will not look for other"
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
   echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
-  echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed."
-  echo "                   example: -o 2 -> permits two concurrent writes to adrive. Default 1, min 1, max 9."
+  echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed"
+  echo "                   example: -o 2 -> permits two concurrent writes to a drive. Default 1, min 1, max 9."
   echo "                   Overlap may be useful when the number of plot_mover instances exceeds the number of"
-  echo "                   drives to fill, but performance may be reduced."
+  echo "                   drives to fill, but performance may be reduced. Script will seek drives not in use first."
   echo "  -v, --version  Provides version number and exits."
   echo 
 }
@@ -132,6 +137,8 @@ if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=fa
 
 echo
 while true; do
+  # Look for drives not in use first, even if allowing overlapping drive writes.
+  second_look=false # Reset second_look
   ls $SRC/*.plot 2>/dev/null | while read plot; do
     # ----------------------------------------
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
@@ -173,7 +180,8 @@ while true; do
               fi
             done
           fi
-          if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $num_overlap ]; then
+          if $second_look; then overlap_check=$num_overlap; else overlap_check=0; fi
+          if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $overlap_check ]; then
             if $manual; then
               number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
               size_needed=$(($(($number_of_moves+1))*$plot_size))
@@ -183,41 +191,45 @@ while true; do
             if $manual || [ -f $drive/$NFT ]; then
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
-                if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $num_overlap ]; then
+                if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
                   printf " -> $drive"
                   finLOC=$drive
-                  break
+                  # Move the plot
+                  used=`du $SRC|awk '{print $1}'|tail -1`
+                  size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
+                  full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
+                  DT=`date +"%m-%d"`; TM=`date +"%T"`
+                  num_plots=`ls $SRC/*.plot|wc -l`
+                  if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
+                  # Verify file not already being moved and not exceeding max mvoes to destination.
+                  (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
+                  sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
+                  sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
+                  if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt $overlap_check ]; then
+                    second_look=false
+                    continue
+                  fi
+                  if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
+                  tput_hi=`(tput setaf 3)`
+                  tput_lo=`(tput setaf 6)`
+                  tput_off=`(tput sgr0)`
+                  printf "${tput_lo}\n\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_lo} -> $finLOC $NFT\n${tput_off}"
+                  # move the plot from SRC to farm
+                  ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
+                  finLOC=""
+                  break # exit the loop after successfully moving a plot
                 fi
               fi
             fi
           fi
         done
-        # ----------------------------------------
-        # Plots exist and there is space in a destination drive. Move all the plot.
-        if [ ! -z $finLOC ]; then
-          used=`du $SRC|awk '{print $1}'|tail -1`
-          size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
-          full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
-          DT=`date +"%m-%d"`; TM=`date +"%T"`
-          num_plots=`ls $SRC/*.plot|wc -l`
-          if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
-          # Verify file not already being moved and not exceeding max mvoes to destination.
-          (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
-          sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
-          sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-          if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt $num_overlap ]; then continue; fi
-          if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-          tput_hi=`(tput setaf 3)`
-          tput_lo=`(tput setaf 6)`
-          tput_off=`(tput sgr0)`
-          printf "${tput_lo}\n\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_lo} -> $finLOC $NFT\n${tput_off}"
-          # move the plot from SRC to farm
-          ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
-          finLOC=""
-          break # exit the loop after successfully moving plot
-        else
-          printf "No drive space found. Waiting 60 seconds to recheck.\n"
-          sleep 60
+        if [ -z $finLOC ]; then # If empty drive space not found
+          if $overlap; then
+            second_look=true # Look again with overlap, if used
+          else
+            printf "No drive space found. Waiting 60 seconds to recheck.\n"
+            sleep 60
+          fi
         fi
       fi
     else
