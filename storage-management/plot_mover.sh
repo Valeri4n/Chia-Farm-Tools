@@ -4,7 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 version() {
-  printf "\nplot_mover.sh version = 1.3.1 \n\n"
+  printf "\n plot_mover.sh version = 1.3.2  \n\n"
   exit 1
 }
 
@@ -139,6 +139,7 @@ echo
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
   second_look=false # Reset second_look
+  transferred=false
   ls $SRC/*.plot 2>/dev/null | while read plot; do
     # ----------------------------------------
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
@@ -160,7 +161,7 @@ while true; do
         for drive in $DST/* ; do
           if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
           if $manual || $one_drive; then drive=$DST; fi
-          if [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -ge 1 ]; then
+          if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then
             checkDT=`date "+%Y%m%d"`
             checkTM=`date "+%-H%M"`
             for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
@@ -174,7 +175,6 @@ while true; do
               else
                 rm_hidden_rsync=false
               fi
-              ps aux|grep $hidden_rsync|grep -v -e --color -e grep -e watch
               if $rm_hidden_rsync && [ $(ps aux|grep $hidden_rsync|grep -v -e --color -e grep -e watch|wc -l) -lt 1 ]; then
                 rm $hidden_rsync
               fi
@@ -217,6 +217,7 @@ while true; do
                   # move the plot from SRC to farm
                   ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                   finLOC=""
+                  transferred=true
                   break # exit the loop after successfully moving a plot
                 fi
               fi
@@ -224,7 +225,9 @@ while true; do
           fi
         done
         if [ -z $finLOC ]; then # If empty drive space not found
-          if $overlap; then
+          if $transferred; then
+            transferred=false
+          elif $overlap; then
             second_look=true # Look again with overlap, if used
           else
             printf "No drive space found. Waiting 60 seconds to recheck.\n"
