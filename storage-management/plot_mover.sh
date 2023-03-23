@@ -4,8 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 version() {
-  printf "\n plot_mover.sh version = 1.3.2  \n\n"
-  exit 1
+  printf "\n plot_mover.sh version = 1.3.3  \n\n"
 }
 
 help() {
@@ -92,9 +91,11 @@ flags() {
           printf "\nOVERLAP MUST BE USED WITH MIN 1 or MAX 9. -h for help. EXITING."
           exit 1
         fi
+        overlap_str="with max $num_overlap concurrent plots written to a single destination drive."
         shift 2;;
       -v|--version)
         version
+        exit
         shift 1;;
       --)
         break;;
@@ -104,43 +105,49 @@ flags() {
   done
 }
 
-overlap=false
-manual=false
-force=false
-flags "${@}"
-flags "${@:3}"
-if $force && ! $manual; then printf "\nFORCE MUST BE USED IN MAUAL MODE. EXITING.\n\n"; exit 1; fi
-if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL$forced MODE\n"; fi
-if $overlap; then num_overlap=$(($num_overlap - 1)); else num_overlap=0; fi
+set_variables() {
+  overlap=false
+  manual=false
+  force=false
+  tput_hi=`(tput setaf 3)`
+  tput_lo=`(tput setaf 6)`
+  tput_off=`(tput sgr0)`
+}
+
+#k32 C0=108836000
+#k33 C0=230000000
+#k34 C0=462000000
+
+version
+SRC=$1 # Source drive to move plots from
+DST=$2 # Destination directory where the plot drives are mounted
 
 if [ -z $1 ] || [ -z $2 ]; then
   echo "Must enter source first followed by drive destination, -h for help: ./plot_mover.sh /cache/path /mnt"
   echo "Exiting"
   exit 1
 fi
-
-SRC=$1 # Source drive to move plots from
-DST=$2 # Destination directory where the plot drives are mounted
-
-#k32 C0=108836000
-#k33 C0=230000000
-#k34 C0=462000000
+set_variables
+flags "${@:3}"
+if $force && ! $manual; then printf "\nFORCE MUST BE USED IN MAUAL MODE. EXITING.\n\n"; exit 1; fi
+if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL$forced MODE\n"; fi
+if $overlap; then num_overlap=$(($num_overlap - 1)); else num_overlap=0; fi
 
 # Determine the size of the SRC drive for % usage calculation
-if ! $manual && [ "$(ls $SRC/drive-size-* 2>/dev/null|wc -l)" -eq 0 ]; then
-  size=`df $SRC|awk '{print $2}'|sed -n 2p`
-  touch $SRC/drive-size-$size
+if [ "$(ls $SRC/drive-size-* 2>/dev/null|wc -l)" -eq 0 ]; then
+  touch $SRC/drive-size-$(df $SRC|awk '{print $2}'|sed -n 2p)
 fi
 
 # Determine if only one drive was input
 if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=false; fi
 
+echo "SRC=$SRC DST=$DST"
 echo
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
   second_look=false # Reset second_look
   transferred=false
-  ls $SRC/*.plot 2>/dev/null | while read plot; do
+  ls $SRC/*.plot 2>/dev/null|while read plot; do
     # ----------------------------------------
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
     if [ -f $plot ]; then
@@ -192,30 +199,29 @@ while true; do
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
                 if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
-                  printf " -> $drive"
+                  printf " -> $drive$overlap_num"
                   finLOC=$drive
                   # Move the plot
                   used=`du $SRC|awk '{print $1}'|tail -1`
-                  size=`ls $SRC/drive-size-*|awk -F "drive-size-" '{print $2}'`
+                  size=`ls $SRC/drive-size-* 2>/dev/null|awk -F "drive-size-" '{print $2}'`
                   full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
                   DT=`date +"%m-%d"`; TM=`date +"%T"`
-                  num_plots=`ls $SRC/*.plot|wc -l`
+                  num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
                   if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
                   # Verify file not already being moved and not exceeding max mvoes to destination.
                   (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
                   sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
                   sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-                  if ! $manual && [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -gt $overlap_check ]; then
+                  num_xfers=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
+                  if ! $manual && [ $num_xfers -gt $overlap_check ]; then
                     second_look=false
                     continue
                   fi
+                  if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
                   if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                  tput_hi=`(tput setaf 3)`
-                  tput_lo=`(tput setaf 6)`
-                  tput_off=`(tput sgr0)`
-                  printf "${tput_lo}\n\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_lo} -> $finLOC $NFT\n${tput_off}"
+                  printf "${tput_lo}\n\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_lo} -> $finLOC$overlap_report $NFT\n${tput_off}"
                   # move the plot from SRC to farm
-                  ls $plot | xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
+                  ls $plot 2>/dev/null| xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                   finLOC=""
                   transferred=true
                   break # exit the loop after successfully moving a plot
