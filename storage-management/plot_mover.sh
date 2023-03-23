@@ -4,7 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 version() {
-  printf "\n plot_mover.sh version = 1.3.3  \n\n"
+  printf "\n plot_mover.sh version = 1.3.4  \n\n"
 }
 
 help() {
@@ -64,7 +64,8 @@ help() {
   echo "                   instances of plots being moved to the drive and will move plots concurrently."
   echo "                   The nft_SomeName/nft-SomeName pointer files are not needed in manual mode."
   echo "  -o, --overlap  Allows overlapping writes to destination drives. Specify the number of overlaps allowed"
-  echo "                   example: -o 2 -> permits two concurrent writes to a drive. Default 1, min 1, max 9."
+  echo "                   example: -o 2 -> permits two concurrent writes to a drive. Default overlap is none."
+  echo "                   If manually specifying write overlap, the minimum is 2, and maximum is 9."
   echo "                   Overlap may be useful when the number of plot_mover instances exceeds the number of"
   echo "                   drives to fill, but performance may be reduced. Script will seek drives not in use first."
   echo "  -v, --version  Provides version number and exits."
@@ -87,11 +88,11 @@ flags() {
       -o|--overlap)
         overlap=true
         num_overlap=$2
-        if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 1 ] || [ $((num_overlap)) -gt 9 ]; then
+        if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 2 ] || [ $((num_overlap)) -gt 9 ]; then
           printf "\nOVERLAP MUST BE USED WITH MIN 1 or MAX 9. -h for help. EXITING."
           exit 1
         fi
-        overlap_str="with max $num_overlap concurrent plots written to a single destination drive."
+        overlap_str="${tput_hi}overlap:$num_overlap${tput_off}"
         shift 2;;
       -v|--version)
         version
@@ -109,6 +110,7 @@ set_variables() {
   overlap=false
   manual=false
   force=false
+  overlap_str="overlap:0"
   tput_hi=`(tput setaf 3)`
   tput_lo=`(tput setaf 6)`
   tput_off=`(tput sgr0)`
@@ -141,7 +143,7 @@ fi
 # Determine if only one drive was input
 if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=false; fi
 
-echo "SRC=$SRC DST=$DST"
+echo "SRC=$SRC DST=$DST $overlap_str"
 echo
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
@@ -171,10 +173,12 @@ while true; do
           if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then
             checkDT=`date "+%Y%m%d"`
             checkTM=`date "+%-H%M"`
+            if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi
             for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
               sleep 1
               rsyncDT=`date -r $hidden_rsync "+%Y%m%d"` 2>/dev/null
               rsyncTM=`date -r $hidden_rsync "+%-H%M"` 2>/dev/null
+              if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi
               if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
                 rm_hidden_rsync=true
               elif [[ ! -z rsyncTM ]] && [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
