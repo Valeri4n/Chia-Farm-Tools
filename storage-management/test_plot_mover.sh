@@ -3,10 +3,11 @@
 
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
-# - Running test cases
+#- Added exit on error
+#- Improved drive handling
 
 version() {
-  printf "\n plot_mover.sh version = 1.3.6* test  \n\n"
+  printf "\n plot_mover.sh version = 1.3.6*  \n\n"
 }
 
 help() {
@@ -79,11 +80,15 @@ flags() {
   while true; do
     case $1 in
       -h|--help)
-        help; exit 1; shift 1;;
+        help=true
+        shift 1;;
       -m|--manual)
-        manual=true; shift 1;;
+        manual=true
+        shift 1;;
       -f|--force)
-        force=true; forced=" AND FORCED"; shift 1;;
+        force=true
+        forced=" AND FORCED"
+        shift 1;;
       -o|--overlap)
         num_overlap=$2
         if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 1 ] || [ $((num_overlap)) -gt 9 ]; then
@@ -92,7 +97,9 @@ flags() {
         fi
         shift 2;;
       -v|--version)
-        version; exit 1; shift 1;;
+        version
+        exit
+        shift 1;;
       --)
         break;;
       *)
@@ -115,10 +122,8 @@ set_variables() {
 #k32 C0=108836000
 #k33 C0=230000000
 #k34 C0=462000000
-
+set -e
 version
-set_variables
-flags "${@:3}"
 SRC=$1 # Source drive to move plots from
 DST=$2 # Destination directory where the plot drives are mounted
 
@@ -128,11 +133,17 @@ if [ -z $1 ] || [ -z $2 ]; then
   exit 1
 fi
 
+set_variables
+flags "${@:3}"
 if $force && ! $manual; then printf "\nFORCE MUST BE USED IN MAUAL MODE. EXITING.\n\n"; exit 1; fi
-if $manual; then printf "\nPLOT MOVER OPERATING IN MANUAL$forced MODE\n"; fi
-if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 1 ] || [ $((num_overlap)) -gt 9 ]; then
-  printf "\nOverlap is 1-9. 1 is no overlapping drive writes. Default 2. Exiting."
-  exit 1
+if $manual; then 
+  printf "\nPLOT MOVER OPERATING IN MANUAL$forced MODE\n"
+else
+  NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null) 2>/dev/null|sed 's/_/-/g')
+  if [[ -z $NFT ]]; then
+    echo "No nft_file specified in $SRC. Use nft_file or manual mode. -h for help." 1>&2
+    exit 1
+  fi
 fi
 if [ $num_overlap = 1 ]; then
   overlap=false
@@ -141,7 +152,6 @@ else
   overlap=true
   overlap_str="${tput_hi}overlap:$num_overlap${tput_off}"
 fi
-
 num_overlap=$(($num_overlap - 1))
 
 # Determine the size of the SRC drive for % usage calculation
@@ -154,43 +164,39 @@ if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=fa
 
 echo "SRC=$SRC  DST=$DST  $overlap_str"
 echo
+
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
-  second_look=false # Reset second_look
-  transferred=false
-set -x
-  ls $SRC/*.plot 2>/dev/null|while read plot; do
-set +x
+  if $look_reset; then look_reset=false; second_look=false; transferred=false; fi # Reset second_look
+  while read plot; do
     # ----------------------------------------
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
-    if [ -f $plot ]; then
-set -x
+    if [[ -f $plot ]]; then
       plot_name=`echo ${plot##*/}`
-set +x
       (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
       sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
       sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
-set -x
       if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
         if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
         if ! $manual && [[ -z $NFT ]]; then
-          echo "No nft_file specified. Use nft_file or manual mode. -h for help." 1>&2
+          echo "No nft_file specified in $SRC. Use nft_file or manual mode. -h for help." 1>&2
           exit 1
         fi
         # determine the plot size
-        plot_size=`du -k "$plot"|cut -f1`
-set +x
+        plot_size=`du -k $plot|cut -f1`
         # ----------------------------------------
         # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
-set -x
-count=0
+        #drive_cnt=0
+        #for drive in $DST/*; do drive_cnt=$(($drive_cnt+1)); done
+        #loop_cnt=0
+        #drive_in_use=0
         for drive in $DST/* ; do
+          #loop_cnt=$(($loop_cnt+1))
+          #if [ $loop_cnt -gt $drive_cnt ] && ! $manual; then break; fi
           if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
           if $manual || $one_drive; then drive=$DST; fi
-set +x
-count=$(($count+1))
-if [ $((count)) -gt 2 ]; then exit 1; fi
           if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then
+            #drive_in_use=$(($drive_in_use+1))
             checkDT=`date "+%Y%m%d"`
             checkTM=`date "+%-H%M"`
             if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles 00 hour
@@ -203,7 +209,7 @@ if [ $((count)) -gt 2 ]; then exit 1; fi
               if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles <10 minutes in 00 hour
               if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
                 rm_hidden_rsync=true
-              elif [[ ! -z rsyncTM ]] && [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
+              #elif [[ ! -z rsyncTM ]] && [ $((${rsyncTM##+(0)})) -lt $((${checkTM##+(0)})) ]; then
                 rm_hidden_rsync=true
               else
                 rm_hidden_rsync=false
@@ -256,30 +262,36 @@ if [ $((count)) -gt 2 ]; then exit 1; fi
             fi
           fi
         done
-        if [ -z $finLOC ]; then # If empty drive space not found
+        if [[ -z $finLOC ]]; then # If empty drive space not found
           if $transferred; then
-            transferred=false
-          elif $overlap; then
+            reset_var=true
+          #elif [ $drives_busy -gt 0 ] && $overlap && ! $second_look; then
+          elif $overlap && ! $second_look; then
             second_look=true # Look again with overlap, if used
+            look_reset=false
           else
+            reset_var=true
             printf "No drive space found. Waiting 60 seconds to recheck.\n"
             sleep 60
           fi
         fi
       fi
-set +x
     else
-      cnt=$(($cnt + 1))
-      sp="-\|/"
-      DT=`date +"%m-%d"`; TM=`date +"%T"`
-      printf "\r$DT $TM  \b${sp:cnt%${#sp}:1} no plots $1 $NFT"
-      sleep 0.2
+      for i in 1 to 10; do
+        cnt=$(($cnt + 1))
+        sp="-\|/"
+        DT=`date +"%m-%d"`; TM=`date +"%T"`
+        printf "\r$DT $TM  \b${sp:cnt%${#sp}:1} on plots $1 $NFT"
+        sleep 0.5
+      done
     fi
-  done
+  done <<<$(ls $SRC/*.plot 2>/dev/null)
   err=$?; [[ $err != 0 ]] && exit $err
-  cnt=$(($cnt + 1))
-  sp="-\|/"
-  DT=`date +"%m-%d"`; TM=`date +"%T"`
-  printf "\r$DT $TM  \b${sp:cnt%${#sp}:1} waiting $1 $NFT"
-  sleep 1
+  for i in 1 to 10; do
+    cnt=$(($cnt + 1))
+    sp="-\|/"
+    DT=`date +"%m-%d"`; TM=`date +"%T"`
+    printf "\r$DT $TM  \b${sp:cnt%${#sp}:1}  waiting $1 $NFT"
+    sleep 0.5
+  done
 done
