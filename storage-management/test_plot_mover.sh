@@ -255,6 +255,7 @@ while true; do
                   # move the plot from SRC to farm
                   ls $plot 2>/dev/null| xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                   finLOC=""
+                  waited=true
                   transferred=true
                   break # exit the loop after successfully moving a plot
                 fi
