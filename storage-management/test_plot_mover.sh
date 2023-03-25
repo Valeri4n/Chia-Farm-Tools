@@ -5,9 +5,10 @@
 
 #- Added exit on error
 #- Improved drive handling
+#- Fixed random errors
 
 version() {
-  printf "\n plot_mover.sh version = 1.3.6*  \n\n"
+  printf "\n plot_mover.sh version = 1.3.6* test \n\n"
 }
 
 help() {
@@ -80,25 +81,23 @@ flags() {
   while true; do
     case $1 in
       -h|--help)
-        help=true
+        help; exit 1
         shift 1;;
       -m|--manual)
         manual=true
         shift 1;;
       -f|--force)
-        force=true
-        forced=" AND FORCED"
+        force=true; forced=" AND FORCED"
         shift 1;;
       -o|--overlap)
         num_overlap=$2
         if [[ -z $num_overlap ]] || [ $((num_overlap)) -lt 1 ] || [ $((num_overlap)) -gt 9 ]; then
-          printf "\nOverlap is 1-9. 1 is no overlapping drive writes. Default 2. Exiting."
+          printf "\nOverlap is 1-9. 1 is single drive write at a time to any one drive. Default is 2, allowing for 2 concurrent writes to any one drive. Exiting."
           exit 1
         fi
         shift 2;;
       -v|--version)
-        version
-        exit
+        exit 1
         shift 1;;
       --)
         break;;
@@ -168,12 +167,12 @@ echo
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
   if $look_reset; then look_reset=false; second_look=false; transferred=false; fi # Reset second_look
-  while read plot; do
+  while read plot 2>/dev/null; do
     # ----------------------------------------
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
     if [[ -f $plot ]]; then
       plot_name=`echo ${plot##*/}`
-      (( n = RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
+      n=$(($RANDOM % 30 )) # randomize the sleep timer 0-3 seconds
       sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
       sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
       if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
@@ -183,7 +182,7 @@ while true; do
           exit 1
         fi
         # determine the plot size
-        plot_size=`du -k $plot|cut -f1`
+        plot_size=`du -k $plot 2>/dev/null|cut -f1`
         # ----------------------------------------
         # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
         #drive_cnt=0
@@ -203,8 +202,8 @@ while true; do
             if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles <10 minutes in 00 hour
             for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
               sleep 1
-              rsyncDT=`date -r $hidden_rsync "+%Y%m%d"` 2>/dev/null
-              rsyncTM=`date -r $hidden_rsync "+%-H%M"` 2>/dev/null
+              rsyncDT=`date -r $hidden_rsync "+%Y%m%d" 2>/dev/null`
+              rsyncTM=`date -r $hidden_rsync "+%-H%M" 2>/dev/null`
               if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles 00 hour
               if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles <10 minutes in 00 hour
               if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
@@ -231,7 +230,7 @@ while true; do
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
                 if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
-                  printf " -> $drive$overlap_num"
+                  printf "\r${tput_lo} $NFT -> $drive${tput_hi}$overlap_num${tput_off}"
                   finLOC=$drive
                   # Move the plot
                   used=`du $SRC|awk '{print $1}'|tail -1`
@@ -241,7 +240,7 @@ while true; do
                   num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
                   if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
                   # Verify file not already being moved and not exceeding max mvoes to destination.
-                  (( n = RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
+                  n=$(($RANDOM % 50 )) # randomize the sleep timer 0-5 seconds
                   sleep_time=`printf '%s.%s\n' $(( n / 10 )) $(( n % 10 ))`
                   sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
                   num_xfers=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
@@ -251,7 +250,7 @@ while true; do
                   fi
                   if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
                   if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                  printf "${tput_lo}\n\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_lo} -> $finLOC$overlap_report $NFT\n${tput_off}"
+                  printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_off}\n"
                   # move the plot from SRC to farm
                   ls $plot 2>/dev/null| xargs -P1 -I% rsync -vhW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                   finLOC=""
@@ -281,17 +280,18 @@ while true; do
         cnt=$(($cnt + 1))
         sp="-\|/"
         DT=`date +"%m-%d"`; TM=`date +"%T"`
-        printf "\r$DT $TM  \b${sp:cnt%${#sp}:1} on plots $1 $NFT"
+        printf "\r$DT $TM  \b${sp:cnt%${#sp}:1} on plots $SRC"
         sleep 0.5
       done
     fi
   done <<<$(ls $SRC/*.plot 2>/dev/null)
-  err=$?; [[ $err != 0 ]] && exit $err
+  #err=$?; [[ $err != 0 ]] && echo; echo "ERROR: $error_str:$err" && exit $err
+  if $transferred; then reset_var=true; fi
   for i in 1 to 10; do
     cnt=$(($cnt + 1))
     sp="-\|/"
     DT=`date +"%m-%d"`; TM=`date +"%T"`
-    printf "\r$DT $TM  \b${sp:cnt%${#sp}:1}  waiting $1 $NFT"
+    printf "\r$DT $TM  \b${sp:cnt%${#sp}:1}  waiting $SRC"
     sleep 0.5
   done
 done
