@@ -118,7 +118,7 @@ set_variables() {
 #k32 C0=108836000
 #k33 C0=230000000
 #k34 C0=462000000
-set -e
+
 version
 SRC=$1 # Source drive to move plots from
 DST=$2 # Destination directory where the plot drives are mounted
