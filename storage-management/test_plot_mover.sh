@@ -112,6 +112,7 @@ set_variables() {
   num_overlap=2
   manual=false
   force=false
+  waited=false
   overlap_str="overlap:2"
   tput_hi=`(tput setaf 3)`
   tput_lo=`(tput setaf 6)`
@@ -161,8 +162,7 @@ fi
 # Determine if only one drive was input
 if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=false; fi
 
-echo "SRC=$SRC  DST=$DST  $overlap_str"
-echo
+printf "SRC=$SRC  DST=$DST  $overlap_str\n\n"
 
 while true; do
   # Look for drives not in use first, even if allowing overlapping drive writes.
@@ -230,6 +230,7 @@ while true; do
               AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
               if [ $((AVAIL)) -gt $((size_needed)) ]; then
                 if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
+                  if $waited; then waited=false; echo; fi
                   printf "\r${tput_lo} $NFT -> $drive${tput_hi}$overlap_num${tput_off}"
                   finLOC=$drive
                   # Move the plot
@@ -293,5 +294,6 @@ while true; do
     DT=`date +"%m-%d"`; TM=`date +"%T"`
     printf "\r$DT $TM  \b${sp:cnt%${#sp}:1}  waiting $SRC"
     sleep 0.5
+    waited=true
   done
 done
