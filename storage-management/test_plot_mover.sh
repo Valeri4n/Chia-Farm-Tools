@@ -4,7 +4,7 @@
 # Run as many instances of this script in parallel as needed to move plots from cache.
 
 # - This is a test, use at your own risk
-# - Added capability to remove plot type to replace with different compression
+# - Added capability to replace plots with compressed plots
 # - Improved status reporting
 
 version() {
