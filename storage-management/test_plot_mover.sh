@@ -8,7 +8,7 @@
 # - Improved status reporting
 
 version() {
-  printf "\n plot_mover.sh v2.0* by Valerian\n\n"
+  printf "\n plot_mover.sh v2.0*test by Valerian\n\n"
 }
 
 help() {
@@ -168,7 +168,7 @@ waiting() {
   printf "\r$TM  \b${sp:cnt%${#sp}:1} $wait_str0: $SRC$len_space$this"
   len_space=""
   wcnt=$(($wcnt+1))
-  sleep 0.5
+  if $slp; then sleep 0.5; fi
 }
 
 set_variables() {
@@ -181,6 +181,7 @@ set_variables() {
   comp_str=""
   test=false
   plot_found=false
+  slp=true
   overlap_str="overlap:2"
   tput_hi=`(tput setaf 3)`
   tput_lo=`(tput setaf 6)`
@@ -188,28 +189,26 @@ set_variables() {
 }
 
 clear_old_rsync() {
-  if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then
-    checkDT=`date "+%Y%m%d"`
-    checkTM=`date "+%-H%M"`
-    if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles 00 hour
-    if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles <10 minutes in 00 hour
-    for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
-      sleep 1
-      rsyncDT=`date -r $hidden_rsync "+%Y%m%d" 2>/dev/null`
-      rsyncTM=`date -r $hidden_rsync "+%-H%M" 2>/dev/null`
-      if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles 00 hour
-      if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles <10 minutes in 00 hour
-      if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
-        rm_hidden_rsync=true
-        rm_hidden_rsync=true
-      else
-        rm_hidden_rsync=false
-      fi
-      if $rm_hidden_rsync && [ $(ps aux|grep $hidden_rsync|grep -v -e --color -e grep -e watch|wc -l) -lt 1 ]; then
-        rm $hidden_rsync
-      fi
-    done
-  fi
+  checkDT=`date "+%Y%m%d"`
+  checkTM=`date "+%-H%M"`
+  if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles 00 hour
+  if [[ ${checkTM:0:1} == "0" ]]; then checkTM=${checkTM:1}; fi # Handles <10 minutes in 00 hour
+  for hidden_rsync in $drive/.plot-*; do # Remove any old rsync sessions
+    sleep 1
+    rsyncDT=`date -r $hidden_rsync "+%Y%m%d" 2>/dev/null`
+    rsyncTM=`date -r $hidden_rsync "+%-H%M" 2>/dev/null`
+    if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles 00 hour
+    if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles <10 minutes in 00 hour
+    if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
+      rm_hidden_rsync=true
+      rm_hidden_rsync=true
+    else
+      rm_hidden_rsync=false
+    fi
+    if $rm_hidden_rsync && [ $(ps aux|grep $hidden_rsync|grep -v -e --color -e grep -e watch|wc -l) -lt 1 ]; then
+      rm $hidden_rsync 2>/dev/null
+    fi
+  done
 }
 
 random_sleep() {
@@ -240,6 +239,7 @@ make_space() {
         fi
       done
     else
+      pass_drive=true
       break
     fi
     if $pass_drive; then break; fi
@@ -344,10 +344,10 @@ if $test; then echo $plot_name; fi
           # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
           for drive in $DST/* ; do
             drive_cnt=$(($drive_cnt+1))
-            if [ $((drive_cnt)) -gt 10 ]; then drive_cnt=0; plot_found=true; waiting; plot_found=false; fi
+            if [ $((drive_cnt)) -gt 40 ]; then drive_cnt=0; plot_found=true; slp=false; waiting; slp=true; plot_found=false; fi
             if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
             if $manual || $one_drive; then drive=$DST; fi
-            clear_old_rsync
+            if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then clear_old_rsync; fi
             if $second_look; then overlap_check=$num_overlap; else overlap_check=0; fi
             if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $overlap_check ]; then
               if $manual; then
@@ -367,7 +367,7 @@ if $test; then echo $plot_name; fi
                     continue
                   fi
                 fi
-                if $pass_drive; then continue; fi
+                if $replot && $pass_drive; then continue; fi
                 AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
                 if [ $((AVAIL)) -gt $((size_needed)) ]; then
                   if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
