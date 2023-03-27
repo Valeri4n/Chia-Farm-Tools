@@ -221,28 +221,29 @@ check_dup() {
   ps aux|grep $plot_name|grep -v -e --color|wc -l
 }
 
-make_space() {
+check_space() {
+  skip_drive=true
   while true; do
-    pass_drive=false
     AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
-    if [ $((AVAIL)) -lt $((size_needed)) ]; then
+    if [ $((AVAIL)) -gt $((size_needed)) ]; then
+      skip_drive=false
+      break
+    elif $replot; then # make_space
       p=0
       while true; do
         p=$(($p+1))
         deplot_name=`find $drive/plot* -printf "%f\n"|sed -n ${p}p`
         if [[ -z $deplot_name ]]; then
-          pass_drive=true
           break
         elif [[ ${deplot_name:9:11} = $plot_type ]] || ([[ ! ${deplot_name:9:11} =~ c^[0-9]+$ ]] && [ $plot_type = c0 ]); then
           echo "Removing $drive/$deplot_name"
           rm $drive/$deplot_name
+          break
         fi
       done
     else
-      pass_drive=true
       break
     fi
-    if $pass_drive; then break; fi
   done
 }
 
@@ -367,8 +368,9 @@ if $test; then echo $plot_name; fi
                     continue
                   fi
                 fi
-                if $replot && $pass_drive; then continue; fi
-                AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
+                check_space
+                if $skip_drive; then continue; fi
+                #AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
                 if [ $((AVAIL)) -gt $((size_needed)) ]; then
                   if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
                     random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
