@@ -36,4 +36,4 @@ Change ${server} to your specific location or type in `server=[location]` prior 
   
 If needing a third layer of drive names, below shows modification of the i loop with an "a" layer added, example: sd<ins>a</ins>fg  
   
-`for i in {"",{a..z},a{a..z}}...`  
+`for i in {"",{a..z},a{a..z}}; ...`  
