@@ -6,6 +6,7 @@
 # - This is a test, use at your own risk
 # - Added capability to replace plots with compressed plots
 # - Improved status reporting
+# - Fixed removal of old rsync files
 
 version() {
   printf "\n plot_mover.sh v2.0*test by Valerian\n\n"
@@ -201,6 +202,7 @@ clear_old_rsync() {
     if [[ ${rsyncTM:0:1} == "0" ]]; then rsyncTM=${rsyncTM:1}; fi # Handles <10 minutes in 00 hour
     if [[ ! -z rsyncDT ]] && [ $((rsyncDT)) -lt $((checkDT)) ]; then
       rm_hidden_rsync=true
+    elif [[ ! -z rsyncTM ]] && [ $((rsyncTM)) -lt $((checkTM)) ]; then
       rm_hidden_rsync=true
     else
       rm_hidden_rsync=false
@@ -351,12 +353,8 @@ if $test; then echo $plot_name; fi
             if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then clear_old_rsync; fi
             if $second_look; then overlap_check=$num_overlap; else overlap_check=0; fi
             if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $overlap_check ]; then
-              if $manual; then
-                number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
-                size_needed=$(($(($number_of_moves+1))*$plot_size))
-              else
-                size_needed=$plot_size
-              fi
+              number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
+              size_needed=$(($(($number_of_moves+1))*$plot_size))
               if $manual || [ -f $drive/$NFT ]; then
                 if $replot; then
                   replot_cnt=$(($replot_cnt+1))
@@ -372,6 +370,7 @@ if $test; then echo $plot_name; fi
                 if $skip_drive; then continue; fi
                 #AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
                 if [ $((AVAIL)) -gt $((size_needed)) ]; then
+                 # if ! $second_look; then 
                   if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
                     random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
                     if $waited; then waited=false; fi
@@ -397,6 +396,7 @@ if $test; then echo $plot_name; fi
                     if ! $manual && [ $num_xfers -gt $overlap_check ]; then second_look=false; continue; fi
                     if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
                     random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
+                    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
                     # move the plot from SRC to DST drive
                     printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_off}\n"
                     ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
@@ -408,12 +408,12 @@ if $test; then echo $plot_name; fi
           done
           if [[ -z $finLOC ]]; then # If empty drive space not found
             if $transferred; then
-              reset_var=true
+              look_reset=true
             elif $overlap && ! $second_look; then
               second_look=true # Look again with overlap, if used
               look_reset=false
             else
-              reset_var=true
+              look_reset=true
               no_drive_space=true
               for i in 1 to 120; do
                 waiting
@@ -429,7 +429,7 @@ if $test; then echo $plot_name; fi
     fi
   done <<<$(ls $SRC/*.plot 2>/dev/null)
   if $transferred; then
-    reset_var=true
+    look_reset=true
     no_plots=false
     look_for_plots=true
     no_drive_space=false
