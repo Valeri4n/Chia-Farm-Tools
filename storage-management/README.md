@@ -12,7 +12,7 @@ If you have a lot of drives with names spread out, a quick and easy way to forma
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>$USER will pull username from system. Replace with other username if needed.</sup>  
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>$drive is autopopulated and should not be changed.</sup>  
 &nbsp;&nbsp;&nbsp;&nbsp; <sup>SomeName is used as a pointer file for the farmer/contract used for plot management.</sup>  
-`lsblk -o name,size,mountpoint|grep "16.4T "|grep -v -e /mnt -e ext4|awk '{print $1}'|while read drive; do ./format_drive.sh -u $USER -d $drive -n SomeName; done`  
+`lsblk -o name,size,type,mountpoint|grep "disk.*16.4T "|grep -v -e /mnt -e ext4 -e xfs -e ntfs|awk '{print $1}'|while read drive; do ./format_drive.sh -u $USER -d $drive -n SomeName -t ext4; done`  
 ### get_drive_storage_config.sh  
 Captures the current storage array for each drive label, size, name, mountpoint, and serial number for future comparison for automatic failure detection. If label includes physical location, it will make locating failed drives easier. Once the drive fails in the system, this information may no longer be available. This script will preserve that information.  
 ### plot_mover.sh  
