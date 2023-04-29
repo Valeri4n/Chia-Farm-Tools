@@ -85,7 +85,7 @@ while true; do
         fi
       fi
       if [ -z $temp ]; then
-        echo "No HDD temperature tools found for $i. Install smartmontools or hddtemp and run again."
+        echo "No HDD temperature tools found for $i. Install smartmontools or hddtemp and run again. Older drives will need hddtemp."
         echo
         echo "To install smartmontools and hddtemp, run the following commands:"
         echo "sudo apt update"
