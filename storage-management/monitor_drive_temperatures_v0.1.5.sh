@@ -86,6 +86,12 @@ while true; do
       fi
       if [ -z $temp ]; then
         echo "No HDD temperature tools found for $i. Install smartmontools or hddtemp and run again."
+        echo
+        echo "To install smartmontools and hddtemp, run the following commands:"
+        echo "sudo apt update"
+        echo "wget http://archive.ubuntu.com/ubuntu/pool/universe/h/hddtemp/hddtemp_0.3-beta15-53_amd64.deb"
+        echo "sudo apt install smartmontools ./hddtemp_0.3-beta15-53_amd64.deb"
+        echo
         exit 1
       fi
       if [ $((temp)) -gt 0 ] && ([ $((temp)) -ge $((HITEMP)) ] || [ -z $HITEMP ]); then
