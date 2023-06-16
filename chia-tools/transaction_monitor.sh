@@ -263,7 +263,7 @@ while true; do
   if [ $(tput cols) -lt 20 ]; then
     narrow=false
     narrower=true
-    num_txn=$((($num_txn)/2))
+    num_txn=$((($num_txn - 1)/2))
   elif [ $(tput cols) -lt 37 ]; then
     narrow=false
     narrower=true
