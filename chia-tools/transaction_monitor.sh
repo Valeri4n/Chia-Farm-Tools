@@ -2,7 +2,7 @@
 #
 # Copyright 2023 by Valerian
 
-# version 0.1
+# version 0.2
 
 # This script displays recent wallet transactions that fit within terminal window and loops every minute
 # Blocks within the last 6 hours are magenta, within last 10 minutes shows alert
@@ -13,6 +13,7 @@
 # Alert sounds don't play inside tmux window. Use 'ctrl-b : set-option bell-action any' for tmux bar flash
 
 # email requires installing mailutils and ssmtp - maybe ssmtp only? Not currently installed
+
 
 variables(){
   min_time=10
@@ -26,7 +27,8 @@ variables(){
   else
     wallet_key=$wallet_key1
   fi
-  line_sub=4
+  line_sub=5
+  line_subs=$line_sub
   max_txns=1000
   # email=
   new_block=false
@@ -39,6 +41,7 @@ variables(){
   alt2=7
   alert_color=1
   last_blk_color=7
+  claim_color=3
   # 0 black
   # 1 red
   # 2 green
@@ -66,12 +69,21 @@ print_header(){
   host_spot=$host
   legend="  `(tput setaf ${alert_color})`${min_time}m `(tput setaf ${hr6})`6h `(tput setaf ${hr24})`24h"
   walletID=$wallet_key
+
   if [[ -z $last_blk_time ]]; then
     blk_elapsed="init"
   else
     blk_elapsed=$(echo "scale=2;(($gnu_time - $last_blk_time)/3600)"|bc -l|awk '{printf "%.2f", $0}')
   fi
-  block_since=" $blk_elapsed"
+  block_since="  $blk_elapsed"
+  
+  claim_balance=0
+  while read claimers; do
+    claim_balance=$(echo "scale=2; $claim_balance + $claimers"|bc)
+  done < <(echo ${wallet}|chia plotnft show|grep "Claimable"|awk '{print $3}')
+  blocks_counted=$(echo "scale=0; $claim_balance / 1.75"|bc)
+  block_claim=" - $blocks_counted blocks waiting to claim -\n"
+
   if $narrow; then
     DT=" $(echo $DT|tail -c 6)"
     TM=" $(echo $TM|head -c 5)"
@@ -81,15 +93,18 @@ print_header(){
     TM=" $(echo $TM|head -c 5)"
     host_spot="xch txn"
     legend=" `(tput setaf ${hr6})`${hr_time1}h `(tput setaf ${hr24})`${hr_time2}h"
-    block_print="h since blk"
+    block_print=" hr since blk"
     walletID=""
     block_since="$blk_elapsed"
+    block_claim=" $blocks_counted blocks to claim\n"
   else
     DT=" - $DT"
     TM=" $TM"
   fi
+  
   printf "`(tput setaf ${header_color})`$host_spot$DT$TM$legend\n"
-  printf "`(tput setaf ${last_blk_color})` $walletID $block_since$block_print\n\n"
+  printf "`(tput setaf ${last_blk_color})` $walletID$block_since$block_print\n"
+  printf "`(tput setaf ${claim_color})`$block_claim\n"
 }
 
 txn_output(){
@@ -144,9 +159,6 @@ get_txn(){
       if [[ $(echo $txn|grep rewarded|wc -l) -eq 1 ]]; then
         block="block"
         block_num=$(($block_num + 1))
-        # if [[ $block == "block" ]] && [ $block_num -eq 1 ]; then
-        #   update_last_block_time=true
-        # fi
       else
         block=""
       fi
@@ -154,7 +166,7 @@ get_txn(){
       line_cnt=$(($line_cnt+1))
       txn_date=$(echo $txn|grep Created|awk '{print $3}')
       txn_time=$(echo $txn|grep Created|awk '{print $4}')
-      if [[ $block == "block" ]] && [ $block_num -eq 1 ]; then #$update_last_block_time; then
+      if [[ $block == "block" ]] && [ $block_num -eq 1 ]; then
         txn_gnu_time=$(date --date="$txn_date $txn_time" '+%s')
         last_blk_time=$txn_gnu_time
         update_last_block_time=false
@@ -250,6 +262,7 @@ if [[ -z $1 ]]; then
 else
   wallet=$1
 fi
+echo "Getting transactions for wallet $wallet"
 variables
 while true; do
   alert=""
@@ -263,7 +276,7 @@ while true; do
   if [ $(tput cols) -lt 20 ]; then
     narrow=false
     narrower=true
-    num_txn=$((($num_txn - 1)/2))
+    num_txn=$((($num_txn - ${#blk_elapsed} + 1)/2))
   elif [ $(tput cols) -lt 37 ]; then
     narrow=false
     narrower=true
