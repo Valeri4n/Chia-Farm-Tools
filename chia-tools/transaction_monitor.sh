@@ -28,7 +28,6 @@ variables(){
     wallet_key=$wallet_key1
   fi
   line_sub=5
-  line_subs=$line_sub
   max_txns=1000
   # email=
   new_block=false
