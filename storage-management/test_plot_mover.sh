@@ -74,7 +74,7 @@ help() {
   echo "                   If manually specifying write overlap, the minimum is 1, and maximum is 9."
   echo "                   Overlap may be useful when the number of plot_mover instances exceeds the number of"
   echo "                   drives to fill, but performance may be reduced. Script will seek drives not in use first."
-  echo "  -r, --replot   Specify compression type plots to replace, -r c0. Options c0-c9."
+  echo "  -r, --replot   Specify compression type plots to replace, -r c0. Options c0-c09."
   echo "                   Available space will be filled first. After, plots of type will be randomly deleted and"
   echo "                   and replaced with new plots. Can specify a single drive with -m and -r."
   echo "  -v, --version  Provides version number and exits."
@@ -106,7 +106,7 @@ flags() {
         replot_maxcnt=24
         comp_str=" compressed"
         if [[ -z $2 ]] || ( ! [ ${2:0:1} = c ] && ! [ ${2:0:1} = C ] ) || ! [[ ${2:1:2} =~ ^[0-9]+$ ]] || [ ${#2} -ne 2 ]; then
-          echo "Replot -r must be used with c0-c9. c0 is also used for legacy plots without c0 specified."
+          echo "Replot -r must be used with c0-c09. c0 is also used for legacy plots without c0 specified."
           exit 1
         else
           echo "${tput_hi}Replacing $plot_type plots${tput_off}"
@@ -325,7 +325,7 @@ while true; do
       #   elif [[ ${plot_type:1:2} = "0" ]] && ([ ! ${plot_name:9:10} = "c" ] || [ ${plot_name:9:11} = "c0" ]); then
       #     delete_plot=true          
       #   fi
-      if $replot && (([ $plot_type = "c0" ] && ! [[ ${plot_name:9:11} =~ c^[0-9]+$ ]]) || [ ${plot_name:9:11} = $plot_type ]); then
+      if $replot && (([ $plot_type = "c0" ] && ! [[ ${plot_name:0:20} =~ c^[0-9]+$ ]]) || [ ${plot_name:0:3} = "$plot_type" ] || [ ${plot_name:0:3} = "$plot_type-" ] ); then
         echo "Source plots are same as type being replaced. Exiting."
         exit 1
       elif $replot; then
