@@ -2,8 +2,6 @@
 #
 # Copyright 2023 by Valerian
 
-# version 0.2
-
 # This script displays recent wallet transactions that fit within terminal window and loops every minute
 # Blocks within the last 6 hours are magenta, within last 10 minutes shows alert
 # All transactions in the last 24 hours are yellow
@@ -14,6 +12,10 @@
 
 # email requires installing mailutils and ssmtp - maybe ssmtp only? Not currently installed
 
+get_version()
+{
+  version=0.3
+}
 
 variables(){
   min_time=10
@@ -82,11 +84,12 @@ print_header(){
   done < <(echo ${wallet}|chia plotnft show|grep "Claimable"|awk '{print $3}')
   blocks_counted=$(echo "scale=0; $claim_balance / 1.75"|bc)
   block_claim=" - $blocks_counted blocks waiting to claim -\n"
-
+  host_spot=$host
   if $narrow; then
     DT=" $(echo $DT|tail -c 6)"
     TM=" $(echo $TM|head -c 5)"
     block_print=" hrs since block"
+    min_width=24
   elif $narrower; then
     DT=""
     TM=" $(echo $TM|head -c 5)"
@@ -99,8 +102,16 @@ print_header(){
   else
     DT=" - $DT"
     TM=" $TM"
+    min_width=32
   fi
-  
+  if ! $narrower; then
+    name_width=$(($max_width - $min_width))
+    if [ ${#host} -gt $name_width ]; then
+      name_width=$(($name_width - 2))
+      host_spot="$(echo $host|head -c $name_width).."
+    fi
+  fi
+
   printf "`(tput setaf ${header_color})`$host_spot$DT$TM$legend\n"
   printf "`(tput setaf ${last_blk_color})` $walletID$block_since$block_print\n"
   printf "`(tput setaf ${claim_color})`$block_claim\n"
@@ -261,7 +272,9 @@ if [[ -z $1 ]]; then
 else
   wallet=$1
 fi
-echo "Getting transactions for wallet $wallet"
+
+get_version
+printf "\nVersion $version. Getting transactions for wallet $wallet."
 variables
 while true; do
   alert=""
@@ -272,14 +285,15 @@ while true; do
   block_num=0
   line_cnt=0
   num_txn=$(($(tput lines) - line_sub))
-  if [ $(tput cols) -lt 20 ]; then
+  max_width=$(tput cols)
+  if [ $max_width -lt 20 ]; then
     narrow=false
     narrower=true
     num_txn=$((($num_txn - ${#blk_elapsed} + 1)/2))
-  elif [ $(tput cols) -lt 37 ]; then
+  elif [ $max_width -lt 37 ]; then
     narrow=false
     narrower=true
-  elif [ $(tput cols) -lt 49 ]; then
+  elif [ $max_width -lt 49 ]; then
     narrow=true
     narrower=false
   else
