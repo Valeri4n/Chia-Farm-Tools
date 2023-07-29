@@ -2,12 +2,16 @@
 #
 # Copyright 2023 by Valerian
 
-get_version() {
-   printf "\n get_transaction.sh v1.0 by Valerian\n\n"
+variables() {
+  version=1.0
+  number=" -l 60"
+  block=false
 }
 
 help() {
   echo 
+  echo "  get_transaction.sh v$version by Valerian"
+  echo
   echo "This script provides an output of the Chia transactions in an easy to read format."
   echo "Default will get the last 60 transactions."
   echo
@@ -53,8 +57,7 @@ flags() {
   done
 }
 
-number=" -l 60"
-block=false
+variables
 flags "${@}"
 txns=$(echo 1|chia wallet get_transactions --no-paginate$number$reverse|grep -i -A 2 "reward\|received")
 blk=0
