@@ -24,7 +24,6 @@ help() {
   echo "  -h, --help     Print help, usage and options to run the script."
   echo "  -n, --number   -n [number], Change the number of transactions in the output."
   echo "  -r, --reverse  List transactions in revers order."
-  echo "  -v, --version  Provides version number and exits."
   echo 
 }
 
@@ -45,9 +44,6 @@ flags() {
         shift 2;;
       -r|--reverse)
         reverse=" --reverse"
-        shift 1;;
-      -v|--version)
-        get_version; exit 1
         shift 1;;
       --)
         break;;
