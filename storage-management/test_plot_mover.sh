@@ -18,6 +18,10 @@ help() {
   echo "may be moved locally within the same system or across mounted shared drives across a network."
   echo "Run this script on the destination system so that it may determine the remaining space available"
   echo "on the destination drive before sending a plot to it."
+  echo
+  echo "This script has only been tested with plots made by chia's bladebit plotter. It may not work"
+  echo "with different naming formats used by other plotters. If there is an issue, feel free to constact"
+  echo "me and I can update it it to handle the other case."
   echo 
   echo "Ideally, to make the best use of this script to automate the transfer of plots, a pointer file is"
   echo "used to designate where to send the plots. This farmer/contract pair for the plots will be in the"
@@ -127,11 +131,12 @@ flags() {
 }
 
 waiting() {
+  if [[ ${waitcnt} -eq 0 ]]; then
   if $plot_found; then
     wait_str="checking drives "
     waitcnt=0
   elif $no_drive_space; then
-    wait_str="No drive space found. Waiting 60 seconds to recheck. "
+    wait_str="No drive space" # found. Waiting 60 seconds to recheck. "
     waitcnt=$wnct
   elif $no_plots; then
     wait_str="waiting on$comp_str plots.... "
@@ -139,6 +144,7 @@ waiting() {
   elif $look_for_plots; then
     wait_str="checking source "
     waitcnt=0
+  fi
   fi
   max_str=16
   cnt=$(($cnt + 1))
@@ -167,6 +173,7 @@ waiting() {
     done
   fi
   printf "\r$TM  \b${sp:cnt%${#sp}:1} $wait_str0: $SRC$len_space$this"
+  checked=true
   len_space=""
   wcnt=$(($wcnt+1))
   if $slp; then sleep 0.5; fi
@@ -238,7 +245,8 @@ check_space() {
         if [[ -z $deplot_name ]]; then
           break
         elif [[ ${deplot_name:9:11} = $plot_type ]] || ([[ ! ${deplot_name:9:11} =~ c^[0-9]+$ ]] && [ $plot_type = c0 ]); then
-          echo "Removing $drive/$deplot_name"
+          if $checked; then checked=false; echo; fi
+          echo "$(tput setaf 3)Removing: $(tput sgr0)$drive/$deplot_name"
           rm $drive/$deplot_name
           break
         fi
@@ -247,6 +255,29 @@ check_space() {
       break
     fi
   done
+}
+
+get_new_plot_count(){
+  len_space=""
+  finLOC=$drive
+  used=`du $SRC|awk '{print $1}'|tail -1`
+  size=`ls $SRC/drive-size-* 2>/dev/null|awk -F "drive-size-" '{print $2}'`
+  full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
+  DT=`date +"%m-%d"`; TM=`date +"%T"`
+  num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
+  if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
+  if [ ! -z $plot_name ]; then
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
+  fi
+  num_xfers=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
+  if ! $manual && [[ $num_xfers -gt $overlap_check ]]; then second_look=false; continue; fi
+  if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
+  if [ ! -z $plot_name ]; then
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
+  fi
+  # move the plot from SRC to DST drive
+  printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult in cache drive${tput_off}\n"
 }
 
 testing() {
@@ -303,6 +334,7 @@ fi
 if [ $(mount|grep "$DST "|wc -l) -eq 1 ]; then one_drive=true; else one_drive=false; fi
 #set -x
 printf "SRC=$SRC  DST=$DST  $overlap_str\n\n"
+get_new_plot_count
 #if $replace; then exit 1; fi
 while true; do
   if $no_plots; then
@@ -320,12 +352,14 @@ while true; do
     # Look to see if plots exist in SRC drive. Don't proceed until they do.
     if [[ -f $plot ]]; then
       plot_name=`echo ${plot##*/}`
+      source_size=`echo $plot_name|awk -F- '{print $3}'`
       # if $replot; then
       #   if [ ${plot_name:9:11} = $plot_type ]; then
       #   elif [[ ${plot_type:1:2} = "0" ]] && ([ ! ${plot_name:9:10} = "c" ] || [ ${plot_name:9:11} = "c0" ]); then
       #     delete_plot=true          
       #   fi
-      if $replot && (([ $plot_type = "c0" ] && ! [[ ${plot_name:0:20} =~ c^[0-9]+$ ]]) || [ ${plot_name:0:3} = "$plot_type" ] || [ ${plot_name:0:3} = "$plot_type-" ] ); then
+      # if $replot && (([ $plot_type = "c0" ] && [[ ! ${source_size} =~ c^[0-9]{1,2}$ ]]) || [ ${source_size} = "$plot_type" ] || [ ${source_size} = "$plot_type-" ] ); then
+      if $replot && ( [ ${source_size} = ${plot_type} ] || [ ${source_size} = "$plot_type-" ] ); then
         echo "Source plots are same as type being replaced. Exiting."
         exit 1
       elif $replot; then
@@ -359,7 +393,7 @@ if $test; then echo $plot_name; fi
                 if $replot; then
                   replot_cnt=$(($replot_cnt+1))
                   if [ $((replot_cnt)) -eq $((rand_replot)) ]; then
-                    make_space
+                    check_space
                   elif [ $((replot_cnt)) -gt $((replot_maxcnt)) ]; then
                     replot_cnt=0
                   else
@@ -383,22 +417,7 @@ if $test; then echo $plot_name; fi
                       done
                     fi
                     printf "\r${tput_lo} $NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
-                    len_space=""
-                    finLOC=$drive
-                    used=`du $SRC|awk '{print $1}'|tail -1`
-                    size=`ls $SRC/drive-size-* 2>/dev/null|awk -F "drive-size-" '{print $2}'`
-                    full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
-                    DT=`date +"%m-%d"`; TM=`date +"%T"`
-                    num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
-                    if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
-                    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                    num_xfers=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
-                    if ! $manual && [ $num_xfers -gt $overlap_check ]; then second_look=false; continue; fi
-                    if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
-                    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                    # move the plot from SRC to DST drive
-                    printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult${tput_off}\n"
+                    get_new_plot_count || break
                     ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                     finLOC=""; transferred=true; echo; break # exit the loop after moving a plot
                   fi
