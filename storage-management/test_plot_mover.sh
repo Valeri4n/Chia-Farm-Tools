@@ -156,7 +156,8 @@ waiting() {
   if [ $(($waitcnt+$max_str)) -gt $((${#wait_str})) ]; then
     wend1=${#wait_str}
     wstart2=0
-    wend2=$(($max_str-${#wait_str}+$waitcnt))
+    if [[ -z ${waitcnt} ]]; then waitcnt=0; fi
+    wend2=$((${max_str} - ${#wait_str} + ${waitcnt}))
   else
     wend1=$max_str
     wend2=0
