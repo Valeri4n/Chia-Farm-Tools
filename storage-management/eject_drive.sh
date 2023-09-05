@@ -1,6 +1,6 @@
 #!/bin/sudo bash
 #
-# Copywrite 2023 by Valerian
+# Copyright 2023 by Valerian
 #
 # Run by using
 # ./eject_drive.sh [indentifier]
