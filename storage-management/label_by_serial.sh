@@ -1,6 +1,6 @@
 #!/bin/sudo bash
 #
-# Copywrite 2023 by Valerian
+# Copyright 2023 by Valerian
 #
 # Locate a drive by serial number and apply a label
 #
