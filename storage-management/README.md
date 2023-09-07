@@ -23,10 +23,9 @@ Change ownership of /mnt so can add directories as user
 `chown -R $USER /mnt; chgrp -R $USER /mnt`  
   
 Make directories  
-`for i in {"",{a..z}}; do for j in {a..z}; do sudo mkdir /mnt/sd$i$j; done; done` 
-`sudo chown -R $USER: /mnt`
+`for i in {"",{a..z}}; do for j in {a..z}; do sudo mkdir /mnt/sd$i$j; done; done; sudo chown -R $USER: /mnt`
 ### Auto Add fstab Entries  
-`for i in {"",{a..z}}; do for j in {a..z}; do echo "/dev/sd$i$j /mnt/sd$i$j auto defaults,nofail 0 0" | sudo tee -a /etc/fstab; done; done`  
+`for i in {"",{a..z}}; do for j in {a..z}; do echo "/dev/sd$i$j /mnt/sd$i$j auto defaults,nofail 0 0"|sudo tee -a /etc/fstab; done; done`  
   
 I have found the `nofail` option to be an important addition in ubuntu if there is potential for a drive to not be present when booting. Sometimes ubuntu will boot into emergency mode until the offending fstab entry is removed if a drive isn't present. Adding `nofail` prevents this and allows normal booting, in my experience.  
 ### Auto Add Chia Plot Directories  
