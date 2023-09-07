@@ -11,7 +11,7 @@
 # **********************************************************************************
 # CURRENTLY ALPHA named in git. RENAME to BETA when clean up code for final testing.
 # **********************************************************************************
-
+#set -x
 version() {
   printf "\n plot_mover.sh alpha_v0.2.0 by Valerian\n\n"
 }
@@ -47,6 +47,14 @@ help() {
   echo "If using manual mode, the destination is specified as /mnt/name. If sending to drive sdf, the"
   echo "destination will be /mnt/sdf for the mountpoint in the example above. The nft pointer file is not"
   echo "needed if using manual mode. A drive must be mounted in destination unless using -m and -f."
+  echo
+  echo "A string can also be used with '[]' after it to match folders that start with certain cahracters."
+  echo "For example, if the device naming structure of /dev/sdXX is used as mounting locations /mnt/sdXX,"
+  echo "plots are only intended to go to /mnt/sdXX locations where other drives could also be there,"
+  echo "such as /mnt/cache, etc. Then the destination can be put in as /mnt/sd[] and the script will"
+  echo "only look for those drives starting with /mnt/sd for plot transfers. It will automatically"
+  echo "exclude the source drive whether this feature is used or not if source is in same destination"
+  echo "folder."
   echo 
   echo "In automatic mode, as many instances of this script may be run as needed to keep the plot cache"
   echo "drive cleared of plots. Multiple instances should deconflict themselves on the same machine by"
@@ -68,6 +76,10 @@ help() {
   echo
   echo "Usage:"
   echo " ./plot_mover.sh <source> <destination mount location> [options]"
+  echo
+  echo "Examples:"
+  echo " ./plot_mover.sh /mnt/cache /mnt [options]"
+  echo " ./plot_mover.sh /mnt/cache /mnt/sd[] [options]"
   echo 
   echo "Options:"
   echo "  -h, --help     Print help, usage and options to run the script."
@@ -234,8 +246,6 @@ random_sleep() {
   sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
 }
 
-
-
 check_space() {
   #set -x
   skip_drive=true
@@ -310,17 +320,18 @@ get_new_plot_count(){
 
 drive_check(){
   for drive in ${DST}${slash}* ; do
+    if [ ${drive} == ${SRC} ]; then continue; fi
     if [[ "$drive" != "$DST"* ]]; then continue; fi
     if $replot; then
+      if [[ -z $drive_marker ]]; then
+        drive_marker=$drive
+      fi
       if [[ -z $drive_set ]]; then
         drive_set=1 
       elif [ ${drive_set} == "1" ] && [ ${drive} != ${drive_marker} ]; then
         drive_set=0
       elif [ ${drive_set} == "0" ] && [ ${drive} == ${drive_marker} ]; then
         drive_replot=true
-      fi
-      if [[ -z $drive_marker ]]; then
-        drive_marker=$drive
       fi
     fi
     drive_cnt=$(($drive_cnt+1))
