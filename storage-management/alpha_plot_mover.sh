@@ -8,8 +8,12 @@
 # - Improved status reporting
 # - Fixed removal of old rsync files
 
+# **********************************************************************************
+# CURRENTLY ALPHA named in git. RENAME to BETA when clean up code for final testing.
+# **********************************************************************************
+
 version() {
-  printf "\n plot_mover.sh v2.0*test by Valerian\n\n"
+  printf "\n plot_mover.sh alpha_v0.2.0 by Valerian\n\n"
 }
 
 help() {
@@ -132,19 +136,21 @@ flags() {
 
 waiting() {
   if [[ ${waitcnt} -eq 0 ]]; then
-  if $plot_found; then
-    wait_str="checking drives "
-    waitcnt=0
-  elif $no_drive_space; then
-    wait_str="No drive space    " # found. Waiting 60 seconds to recheck. "
-    waitcnt=$wnct
-  elif $no_plots; then
-    wait_str="waiting on$comp_str plots.... "
-    waitcnt=$wcnt
-  elif $look_for_plots; then
-    wait_str="checking source "
-    waitcnt=0
-  fi
+    dest_drive=""
+    if $plot_found; then
+      wait_str="checking drives "
+      dest_drive="-> $drive"
+      waitcnt=0
+    elif $no_drive_space; then
+      wait_str="No drive space    " # found. Waiting 60 seconds to recheck. "
+      waitcnt=$wnct
+    elif $no_plots; then
+      wait_str="waiting on$comp_str plots.... "
+      waitcnt=$wcnt
+    elif $look_for_plots; then
+      wait_str="checking source "
+      waitcnt=0
+    fi
   fi
   max_str=16
   cnt=$(($cnt + 1))
@@ -173,7 +179,7 @@ waiting() {
       len_space="$len_space "
     done
   fi
-  printf "\r$TM  \b${sp:cnt%${#sp}:1} $wait_str0: $SRC$len_space$this"
+  printf "\r$TM  \b${sp:cnt%${#sp}:1} $wait_str0: $SRC$len_space$this$dest_drive"
   checked=true
   len_space=""
   wcnt=$(($wcnt+1))
@@ -191,6 +197,7 @@ set_variables() {
   test=false
   plot_found=false
   slp=true
+  wait_str="checking drives "
   overlap_str="overlap:2"
   tput_hi=`(tput setaf 3)`
   tput_lo=`(tput setaf 6)`
@@ -227,27 +234,13 @@ random_sleep() {
   sleep ${sleep_time} # sleep timers to help prevent duplicate plot moves
 }
 
-check_dup() {
-  ps aux|grep $plot_name|grep -v -e --color|wc -l
-}
+
 
 check_space() {
   #set -x
   skip_drive=true
-  drive_replot=false
-  drive_set=""
-  if [[ -z $drive_marker ]]; then
-    drive_marker=$drive
-  fi
   while true; do
     # purpose is to find free space in the farm first before delting plots
-    if [[ -z $drive_set ]]; then
-      drive_set=1 
-    elif [ ${drive_set} == "1" ] && [ ${drive} != ${drive_marker} ]; then
-      drive_set=0
-    elif [ ${drive_set} == "0" ] && [ ${drive} == ${drive_marker} ]; then
-      drive_replot=true
-    fi
 
     AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
     if [ $((AVAIL)) -gt $((size_needed)) ]; then
@@ -315,6 +308,90 @@ get_new_plot_count(){
   printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult in cache drive${tput_off}\n"
 }
 
+drive_check(){
+  for drive in ${DST}${slash}* ; do
+    if [[ "$drive" != "$DST"* ]]; then continue; fi
+    if $replot; then
+      if [[ -z $drive_set ]]; then
+        drive_set=1 
+      elif [ ${drive_set} == "1" ] && [ ${drive} != ${drive_marker} ]; then
+        drive_set=0
+      elif [ ${drive_set} == "0" ] && [ ${drive} == ${drive_marker} ]; then
+        drive_replot=true
+      fi
+      if [[ -z $drive_marker ]]; then
+        drive_marker=$drive
+      fi
+    fi
+    drive_cnt=$(($drive_cnt+1))
+    if [ $((drive_cnt)) -gt 10 ]; then drive_cnt=0; plot_found=true; slp=false; waiting; slp=true; plot_found=false; fi
+    if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
+    if $manual || $one_drive; then drive=$DST; fi
+    if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then clear_old_rsync; fi
+    if $second_look; then overlap_check=$num_overlap; else overlap_check=0; fi
+    if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $overlap_check ]; then
+      number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
+      size_needed=$(($(($number_of_moves+1))*$plot_size))
+      if $manual || [ -f $drive/$NFT ]; then
+        if $replot; then
+          replot_cnt=$(($replot_cnt+1))
+          if [ $((replot_cnt)) -eq $((rand_replot)) ]; then
+            check_space
+          elif [ $((replot_cnt)) -gt $((replot_maxcnt)) ]; then
+            replot_cnt=0
+          else
+            continue
+          fi
+        fi
+        check_space
+        if $skip_drive; then continue; fi
+        #AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
+        if [ $((AVAIL)) -gt $((size_needed)) ]; then
+          # if ! $second_look; then 
+          if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
+            random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
+            if $waited; then waited=false; fi
+            move_string=" $NFT -> $drive$overlap_num"
+            move_len=${#move_string}
+            if [ $((wait_len)) -gt $((move_len)) ]; then
+              len_diff=$(($wait_len-$move_len))
+              for ((s=1; s<=$len_diff; s++)) do
+                len_space="$len_space "
+              done
+            fi
+            printf "\r${tput_lo} $SRC/$NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
+            get_new_plot_count || break
+            tput setaf 7
+            ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
+            tput sgr0
+            finLOC=""; transferred=true; echo; break # exit the loop after moving a plot
+          fi
+        fi
+      fi
+    fi
+  done
+}
+
+check_if_dup(){
+  for i in 1 to 2; do
+    random_sleep
+    dup_check=$(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l)
+    if [ ${dup_check} -eq 0 ]; then
+      dup_plot=false
+    else
+      dup_plot=true
+      return 1
+    fi
+    # random_sleep
+    # if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
+    # if $test; then echo $plot_name; fi
+  done
+}
+
+check_dup() {
+  ps aux|grep $plot_name|grep -v -e --color|wc -l
+}
+
 testing() {
   echo "testing"
 #   echo $plot_name
@@ -329,9 +406,19 @@ testing() {
 #k33 C0=230000000
 #k34 C0=462000000
 #set -e
+tput sgr0
 version
 SRC=$1 # Source drive to move plots from
 DST=$2 # Destination directory where the plot drives are mounted
+last_char=`echo $DST|tail -c 3`
+if [ ${last_char} == "[]" ]; then
+  drive_match=`echo $DST|rev|cut -c 3-|rev`
+  slash=""
+else
+  drive_match=$DST
+  slash="/"
+fi
+DST=$drive_match
 
 if [ -z $1 ] || [ -z $2 ]; then
   echo "Must enter source first followed by drive destination, -h for help: ./plot_mover.sh /cache/path /mnt"
@@ -381,6 +468,9 @@ while true; do
   fi
   # Look for drives not in use first, even if allowing overlapping drive writes.
   if $look_reset; then look_reset=false; second_look=false; transferred=false; fi
+
+
+
   while read plot 2>/dev/null; do
     no_drive_space=false
     # ----------------------------------------
@@ -402,80 +492,46 @@ while true; do
       fi
 if $test; then echo $plot_name; echo $(check_dup); continue; fi
 if $test; then testing; continue; fi
-      if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
-        random_sleep
-        if [ $(ps aux|grep $plot_name|grep -v -e --color -e "grep"|wc -l) -eq 0 ]; then
-if $test; then echo $plot_name; fi
+          check_if_dup || continue
+          if $dup_plot; then break; fi
           if ! $manual; then NFT=$(basename $(find $SRC -type f -name nft_* 2>/dev/null)|sed 's/_/-/g'); fi
           if ! $manual && [[ -z $NFT ]]; then
             echo "No nft_file specified in $SRC. Use nft_file or manual mode. -h for help." 1>&2
             exit 1
           fi
           plot_size=`du -k $plot 2>/dev/null|cut -f1` # determine the plot size
+          drive_replot=false
+          drive_set=""
           # ----------------------------------------
           # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
-          for drive in $DST/* ; do
-            drive_cnt=$(($drive_cnt+1))
-            if [ $((drive_cnt)) -gt 40 ]; then drive_cnt=0; plot_found=true; slp=false; waiting; slp=true; plot_found=false; fi
-            if [ $(mount|grep "$drive "|wc -l) -eq 0 ] && ! $force; then continue; fi # skip location if not mounted and not forced.
-            if $manual || $one_drive; then drive=$DST; fi
-            if [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -ge 1 ]; then clear_old_rsync; fi
-            if $second_look; then overlap_check=$num_overlap; else overlap_check=0; fi
-            if $manual || [ "$(ls -la $drive/.plot-* 2>/dev/null|wc -l)" -le $overlap_check ]; then
-              number_of_moves=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
-              size_needed=$(($(($number_of_moves+1))*$plot_size))
-              if $manual || [ -f $drive/$NFT ]; then
-                if $replot; then
-                  replot_cnt=$(($replot_cnt+1))
-                  if [ $((replot_cnt)) -eq $((rand_replot)) ]; then
-                    check_space
-                  elif [ $((replot_cnt)) -gt $((replot_maxcnt)) ]; then
-                    replot_cnt=0
-                  else
-                    continue
-                  fi
-                fi
-                check_space
-                if $skip_drive; then continue; fi
-                #AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
-                if [ $((AVAIL)) -gt $((size_needed)) ]; then
-                 # if ! $second_look; then 
-                  if $manual || [ $(ls -la $drive/.plot-* 2>/dev/null|wc -l) -le $overlap_check ]; then
-                    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then break; fi
-                    if $waited; then waited=false; fi
-                    move_string=" $NFT -> $drive$overlap_num"
-                    move_len=${#move_string}
-                    if [ $((wait_len)) -gt $((move_len)) ]; then
-                      len_diff=$(($wait_len-$move_len))
-                      for ((s=1; s<=$len_diff; s++)) do
-                        len_space="$len_space "
-                      done
-                    fi
-                    printf "\r${tput_lo} $SRC/$NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
-                    get_new_plot_count || break
-                    ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
-                    finLOC=""; transferred=true; echo; break # exit the loop after moving a plot
-                  fi
-                fi
-              fi
-            fi
+          same_plot=true
+          while $same_plot; do
+            check_if_dup || continue
+            drive_check
           done
+          if $dup_plot; then break; fi
+
           if [[ -z $finLOC ]]; then # If empty drive space not found
             if $transferred; then
               look_reset=true
-            elif $overlap && ! $second_look; then
+              echo "lr1"
+            elif $replot || ($overlap && ! $second_look); then
               second_look=true # Look again with overlap, if used
               look_reset=false
+              echo " lr2 $drive_cnt"
+              if ! $replot; then
+                no_drive_space=true
+              fi
             else
+              echo "lr3"
               look_reset=true
-              no_drive_space=true
               for i in 1 to 120; do
                 waiting
               done
             fi
           fi
-        fi
-      fi
+      #  fi
+     # fi
     else
       for i in 1 to 20; do
         waiting
