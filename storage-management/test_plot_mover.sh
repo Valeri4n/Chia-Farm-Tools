@@ -136,7 +136,7 @@ waiting() {
     wait_str="checking drives "
     waitcnt=0
   elif $no_drive_space; then
-    wait_str="No drive space" # found. Waiting 60 seconds to recheck. "
+    wait_str="No drive space    " # found. Waiting 60 seconds to recheck. "
     waitcnt=$wnct
   elif $no_plots; then
     wait_str="waiting on$comp_str plots.... "
@@ -242,10 +242,15 @@ check_space() {
       p=0
       while true; do
         p=$(($p+1))
-        deplot_name=`find $drive/plot* -printf "%f\n"|sed -n ${p}p`
+        if [[ $plot_type == "c0" ]]; then
+          plot_search="plot-k32-20"
+        elif [[ ! -z ${plot_type} ]]; then
+          plot_search="plot-k32-$plot_type-20"
+        fi
+        deplot_name=`find $drive/$plot_search* -printf "%f\n"|sed -n ${p}p`
         if [[ -z $deplot_name ]]; then
           break
-        elif [[ ${deplot_name:9:11} = $plot_type ]] || ([[ ! ${deplot_name:9:11} =~ c^[0-9]+$ ]] && [ $plot_type = c0 ]); then
+        elif [[ ${deplot_name:9:11} = $plot_type ]] || ([[ ! ${deplot_name:9:11} =~ c^[0-9]+$ ]] && [ $plot_type == "c0" ]); then
           if $checked; then checked=false; echo; fi
           echo "$(tput setaf 3)Removing: $(tput sgr0)$drive/$deplot_name"
           rm $drive/$deplot_name
@@ -417,7 +422,7 @@ if $test; then echo $plot_name; fi
                         len_space="$len_space "
                       done
                     fi
-                    printf "\r${tput_lo} $NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
+                    printf "\r${tput_lo} $SRC/$NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
                     get_new_plot_count || break
                     ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
                     finLOC=""; transferred=true; echo; break # exit the loop after moving a plot
