@@ -268,14 +268,14 @@ get_new_plot_count(){
   num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
   if [ $((num_plots)) -eq 1 ]; then mult=""; else mult="s"; fi
   if [ ! -z $plot_name ]; then
-    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return 1; fi
   fi
   num_xfers=$(ls -la $drive/.plot-* 2>/dev/null|wc -l)
   if ! $manual && [[ $num_xfers -gt $overlap_check ]]; then second_look=false; continue; fi
   if $second_look; then overlap_report="${tput_hi}:$(($num_xfers+1))${tput_lo}"; else overlap_report=""; fi
   if [ ! -z $plot_name ]; then
-    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
-    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return1; fi
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return 1; fi
+    random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return 1; fi
   fi
   # move the plot from SRC to DST drive
   printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult in cache drive${tput_off}\n"
