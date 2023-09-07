@@ -232,33 +232,62 @@ check_dup() {
 }
 
 check_space() {
+  #set -x
   skip_drive=true
+  drive_replot=false
+  drive_set=""
+  if [[ -z $drive_marker ]]; then
+    drive_marker=$drive
+  fi
   while true; do
+    # purpose is to find free space in the farm first before delting plots
+    if [[ -z $drive_set ]]; then
+      drive_set=1 
+    elif [ ${drive_set} == "1" ] && [ ${drive} != ${drive_marker} ]; then
+      drive_set=0
+    elif [ ${drive_set} == "0" ] && [ ${drive} == ${drive_marker} ]; then
+      drive_replot=true
+    fi
+
     AVAIL=$(df $drive --output=avail|awk -F "[[:space:]]+" '{print $1}'|tail -n 1)
     if [ $((AVAIL)) -gt $((size_needed)) ]; then
       skip_drive=false
-      break
-    elif $replot; then # make_space
+      return 1
+    elif $replot && $drive_replot; then # make_space
       p=0
-      while true; do
-        p=$(($p+1))
+      while read drive_file; do # true; do
+        plot_search=""
         if [[ $plot_type == "c0" ]]; then
           plot_search="plot-k32-20"
         elif [[ ! -z ${plot_type} ]]; then
           plot_search="plot-k32-$plot_type-20"
         fi
-        deplot_name=`find $drive/$plot_search* -printf "%f\n"|sed -n ${p}p`
+        max_p=`ls $drive/$plot_search* -printf "%f\n" 2>/dev/null|wc -l`
+        deplot_name=""
+        if [ ${max_p} -gt 0 ]; then
+          p=$(($p+1))
+          deplot_name=`find $drive/$plot_search* -printf "%f\n" 2>/dev/null|sed -n ${p}p`
+          ended=true
+        else
+          ended=true
+          break
+        fi
         if [[ -z $deplot_name ]]; then
+          ended=true
           break
         elif [[ ${deplot_name:9:11} = $plot_type ]] || ([[ ! ${deplot_name:9:11} =~ c^[0-9]+$ ]] && [ $plot_type == "c0" ]); then
           if $checked; then checked=false; echo; fi
           echo "$(tput setaf 3)Removing: $(tput sgr0)$drive/$deplot_name"
           rm $drive/$deplot_name
+          skip_drive=false
+          ended=true
           break
         fi
       done
+      if [ ${p} -ge ${max_p} ]; then ended=true; fi
+      if $ended; then return 1; fi
     else
-      break
+      return 1
     fi
   done
 }
