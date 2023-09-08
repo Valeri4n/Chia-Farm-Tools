@@ -11,7 +11,7 @@
 # **********************************************************************************
 # CURRENTLY ALPHA named in git. RENAME to BETA when clean up code for final testing.
 # **********************************************************************************
-#set -x
+# set -x
 version() {
   printf "\n plot_mover.sh alpha_v0.2.0 by Valerian\n\n"
 }
@@ -315,7 +315,10 @@ get_new_plot_count(){
     random_sleep; if [ $(ps aux|grep $plot_name|grep -v -e --color|wc -l) -gt 1 ]; then return 1; fi
   fi
   # move the plot from SRC to DST drive
-  printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult in cache drive${tput_off}\n"
+  if ! $printed_plot_count; then
+    printf "${tput_lo}\n$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult in cache drive${tput_off}\n"
+    printed_plot_count=true
+  fi
 }
 
 drive_check(){
@@ -350,8 +353,8 @@ drive_check(){
             check_space
           elif [ $((replot_cnt)) -gt $((replot_maxcnt)) ]; then
             replot_cnt=0
-          else
-            continue
+          # else
+          #   continue
           fi
         fi
         check_space
@@ -370,12 +373,18 @@ drive_check(){
                 len_space="$len_space "
               done
             fi
-            printf "\r${tput_lo} $SRC/$NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space"
             get_new_plot_count || break
+            printf "\n\n${tput_lo}$DT $TM ${tput_hi}$full"%%" - $num_plots plot$mult: $SRC/$NFT -> $drive${tput_hi}$overlap_num${tput_off}$len_space\n"
             tput setaf 7
             ls $plot 2>/dev/null| xargs -P1 -I% rsync -hW --chown=$USER:$USER --chmod=0744 --progress --remove-source-files % $finLOC/
+            printed_plot_count=false
             tput sgr0
-            finLOC=""; transferred=true; echo; break # exit the loop after moving a plot
+            finLOC=""
+            transferred=true
+            dup_plot=false
+            echo 
+            return 1
+            #break # exit the loop after moving a plot
           fi
         fi
       fi
@@ -517,24 +526,23 @@ if $test; then testing; continue; fi
           # Look to see if the destination drive currently has any other plots actively being copied to it. If so, skip that drive.
           same_plot=true
           while $same_plot; do
-            check_if_dup || continue
-            drive_check
+            check_if_dup || break
+            drive_check || break
+           # if $transferred; then break; fi
           done
-          if $dup_plot; then break; fi
+          if $dup_plot; then continue; fi
+          if $transferred; then continue; fi
 
           if [[ -z $finLOC ]]; then # If empty drive space not found
             if $transferred; then
               look_reset=true
-              echo "lr1"
             elif $replot || ($overlap && ! $second_look); then
               second_look=true # Look again with overlap, if used
               look_reset=false
-              echo " lr2 $drive_cnt"
               if ! $replot; then
                 no_drive_space=true
               fi
             else
-              echo "lr3"
               look_reset=true
               for i in 1 to 120; do
                 waiting
