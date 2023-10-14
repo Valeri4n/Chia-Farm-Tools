@@ -16,6 +16,6 @@ To get the pool launcher id, from the gui, go to Pooling -> press three dots on 
   - Modify '1p' to the number of the nft you want.  
 ## Make Live Copy of Chia DB  
 Make an online copy of the db without having to take your farmer down using sqlite3  
-`sqlite3 /home/$USER/.chia/mainnet/db/blockchain_v2_mainnet.sqlite "vacuum into '/home/$USER/tmp/blockchain_v2_mainnet.sqlite'"`
+`sqlite3 /home/$(whoami)/.chia/mainnet/db/blockchain_v2_mainnet.sqlite "vacuum into '/home/$(whoami)/tmp/blockchain_v2_mainnet.sqlite'"`
 
 
