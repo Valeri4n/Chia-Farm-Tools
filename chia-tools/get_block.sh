@@ -19,7 +19,7 @@
 if [[ -z $1 ]]; then
   last_check=1
 elif [[ $1 = all ]]; then 
-  last_check=$(echo|chia wallet get_transactions|grep -B 3 rewarded|grep Transaction|sed -n ${last_block}p|awk -F"Transaction" '{print $2}'|sed 's/ //g'|wc -l)
+  last_check=$(echo|chia wallet get_transactions|grep -B 3 rewarded|grep Transaction|awk -F"Transaction" '{print $2}'|sed 's/ //g'|wc -l)
 else
   last_check=$1
 fi
