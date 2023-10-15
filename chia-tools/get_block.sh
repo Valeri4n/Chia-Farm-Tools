@@ -77,13 +77,14 @@ for (( check=1; check<=${last_check}; check++)); do
           drive=$(echo $plot|awk -F/ -v x=$((${i}+2)) '{print $x}')
           nft=$(ls /${mount_path}/${server}${drive}/nft-* 2>/dev/null|awk -F/ -v x=$((${i}+3)) '{print $x}')
         else
-          svr=$(hostname|awk -F/ '{print $1}')
-          drive=$(echo $plot|awk -F- -v x=$((${i}+1)) '{print $x}')
+          svr=$(hostname|awk -F- '{print $1}')
+          drive=$(echo $plot|awk -F/ -v x=$((${i}+1)) '{print $x}')
           nft=$(ls /${mount_path}/${server}${drive}/nft-* 2>/dev/null|awk -F/ -v x=$((${i}+2)) '{print $x}')
         fi
       fi
     done
-    if [[ ! -z $nft ]]; then color="$(tput setaf 5)"; nft=${nft}-; else color="$(tput sgr0)";fi
+    color="$(tput setaf 5)"
+    if [[ ! -z $nft ]]; then nft=${nft}-; fi
     printf "${color}\nblock=${block}\npkey=${pkey}\n${nft}${svr}-${plot}$(tput sgr0)\n\n"
   fi
 done
