@@ -117,7 +117,7 @@ get_open_drives(){
       if $nft_true; then 
         old_count=$(($old_count + `ls $drive/$old_plots 2>/dev/null|wc -l`))
         new_count=$(($new_count + `ls $drive/$new_plots 2>/dev/null|wc -l`))
-        if [[ ${avail} -gt 83800000 ]]; then
+        if [[ ${avail} -gt ${new_size} ]]; then
           num_space=$(($num_space + 1))
         fi
         if $reload && [[ `ls $drive/$old_plots 2>/dev/null|wc -l` -ge 1 ]]; then
