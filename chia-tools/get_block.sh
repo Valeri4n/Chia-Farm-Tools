@@ -16,24 +16,34 @@
 #
 # This will check the last wallet synced. Check different wallet by syncing other wallet.
 
+one_check=false
+first_check=1
 if [[ -z $1 ]]; then
   last_check=1
+elif [[ $1 = -o ]]; then # only this block
+  last_check=$2
+  first_check=$2
 elif [[ $1 = all ]]; then 
-  last_check=$(echo|chia wallet get_transactions|grep -B 3 rewarded|grep Transaction|awk -F"Transaction" '{print $2}'|sed 's/ //g'|wc -l)
+  last_check=$(echo|chia wallet get_transactions|grep -B 3 rewarded|grep Transaction|awk -F"Transaction " '{print $2}'|wc -l)
 else
   last_check=$1
 fi
 
-for (( check=1; check<=${last_check}; check++)); do
+block_txns=$(echo|chia wallet get_transactions|grep -B 2 -A 2 rewarded|grep "Transaction"|awk -F"Transaction " '{print $2}')
+txn_times=$(echo|chia wallet get_transactions|grep -B 2 -A 2 rewarded|grep "Created"|awk -F"Created at: " '{print $2}'|sed 's/ /,/')
+
+for (( check=${first_check}; check<=${last_check}; check++)); do
   last_block=$check
-  txn=$(echo|chia wallet get_transactions|grep -B 3 rewarded|grep Transaction|sed -n ${last_block}p|awk -F"Transaction" '{print $2}'|sed 's/ //g')
-  printf "\nPrevious block # ${last_block}\ntxn=${txn}\n"
+  txn=$(echo $block_txns|awk -v str=$check '{print $str}')
+  txn_time=$(echo $txn_times|awk -v str=$check '{print $str}'|sed 's/,/ /')
+  printf "\nPrevious block # ${last_block} at $txn_time\ntxn=${txn}\n"
   block=$(curl -s https://alltheblocks.net/chia/coin/0x${txn}|grep "Confirmed At Height"|awk -F"height=" '{print $2}'|awk -F\" '{print $2}')
-  block=$((block-9))
+  block=$((block-6))
   plot=""
   i=1
   plot_found=true
   nft=""
+
   while [[ -z $plot ]]; do
     printf "."
     i=$(($i+1))
@@ -44,11 +54,8 @@ for (( check=1; check<=${last_check}; check++)); do
       --key ~/.chia/mainnet/config/ssl/harvester/private_harvester.key \
       -d '{}' \
       -H "Content-Type: application/json" \
-      -X POST https://localhost:8560/get_plots \
-        | python3 -m json.tool \
-        | grep -B5 ${pkey} \
-        | grep -o '/.*\.plot')
-    if [[ ${i} -gt 10 ]]; then
+      -X POST https://localhost:8560/get_plots|python3 -m json.tool|grep -B5 ${pkey}|grep -o '/.*\.plot')
+    if [[ ${i} -gt 6 ]]; then
       printf "\r             \n\n$(tput setaf 3)Plot not found$(tput sgr0)\n\n"
       plot_found=false; break
     fi
@@ -85,6 +92,6 @@ for (( check=1; check<=${last_check}; check++)); do
     done
     color="$(tput setaf 5)"
     if [[ ! -z $nft ]]; then nft=${nft}-; fi
-    printf "${color}\nblock=${block}\npkey=${pkey}\n${nft}${svr}-${plot}$(tput sgr0)\n\n"
+    printf "${color}\n$txn_time - block=${block}\npkey=${pkey}\n${nft}${svr}-${plot}$(tput sgr0)\n\n"
   fi
 done
