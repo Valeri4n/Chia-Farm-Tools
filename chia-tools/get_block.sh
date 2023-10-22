@@ -19,7 +19,6 @@
 #
 # This will check the last wallet synced. Check different wallet by syncing other wallet.
 
-one_check=false
 first_check=1
 if [[ -z $1 ]]; then
   last_check=1
