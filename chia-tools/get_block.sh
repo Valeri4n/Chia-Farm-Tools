@@ -58,7 +58,7 @@ for (( check=${first_check}; check<=${last_check}; check++)); do
       -H "Content-Type: application/json" \
       -X POST https://localhost:8560/get_plots|python3 -m json.tool|grep -B5 ${pkey}|grep -o '/.*\.plot')
     if [[ ${i} -gt 6 ]]; then
-      printf "\r             \n\n$(tput setaf 3)Plot not found$(tput sgr0)\n\n"
+      printf "\r             \n$(tput setaf 3)Plot not found$(tput sgr0)\n\n"
       plot_found=false; break
     fi
   done
