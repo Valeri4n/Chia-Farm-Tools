@@ -19,6 +19,8 @@
 #
 # This will check the last wallet synced. Check different wallet by syncing other wallet.
 
+echo "Commencing block lookup"
+reverse_block=9 # number to search backwards for proper block
 first_check=1
 if [[ -z $1 ]]; then
   last_check=1
@@ -35,27 +37,27 @@ block_txns=$(echo|chia wallet get_transactions|grep -B 2 -A 2 rewarded|grep "Tra
 txn_times=$(echo|chia wallet get_transactions|grep -B 2 -A 2 rewarded|grep "Created"|awk -F"Created at: " '{print $2}'|sed 's/ /,/')
 
 for (( check=${first_check}; check<=${last_check}; check++)); do
+  wait_str=""
   last_block=$check
   txn=$(echo $block_txns|awk -v str=$check '{print $str}')
   txn_time=$(echo $txn_times|awk -v str=$check '{print $str}'|sed 's/,/ /')
   printf "\nPrevious block # ${last_block} at $txn_time\ntxn=${txn}\n"
   block=$(curl -s https://alltheblocks.net/chia/coin/0x${txn}|grep "Confirmed At Height"|awk -F"height=" '{print $2}'|awk -F\" '{print $2}')
-  block=$((block-6))
+  block=$((${block}-${reverse_block}))
   plot=""
-  i=1
+  i=0
   plot_found=true
   nft=""
 
   while [[ -z $plot ]]; do
-    printf "."
     i=$(($i+1))
     block=$(($block+1))
+    wait_str="${wait_str}."
+    block_str="Checking block $block"
+    printf "\r$block_str$wait_str"
     pkey=$(curl -s "https://alltheblocks.net/chia/height/${block}"|grep "Plot Public Key" -A 1|grep -v "Plot Public Key"|sed 's/ //g')
-    plot=$(curl --insecure --no-progress-meter -H "Content-Type: application/json" -d '{}' \
-      --cert ~/.chia/mainnet/config/ssl/harvester/private_harvester.crt \
-      --key ~/.chia/mainnet/config/ssl/harvester/private_harvester.key \
-      -X POST https://localhost:8560/get_plots|python3 -m json.tool|grep -B5 ${pkey}|grep -o '/.*\.plot')
-    if [[ ${i} -gt 6 ]]; then
+    plot=$(chia rpc farmer get_harvesters|grep -B5 ${pkey}|grep -o '/.*\.plot')
+    if [[ ${i} -ge ${reverse_block} ]] && [[ -z $plot ]]; then
       printf "\r             \n$(tput setaf 3)Plot not found$(tput sgr0)\n\n"
       plot_found=false; break
     fi
