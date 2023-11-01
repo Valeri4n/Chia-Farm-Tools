@@ -77,7 +77,7 @@ for (( check=${first_check}; check<=${last_check}; check++)); do
           plot=$(sed "$(($(grep -n ${pkey} plot_data |awk -F: '{print $1}') - 2))q;d" plot_data|awk -F'\"' '{print $4}')
           plot_block=$block
           plot_found=true
-          echo $plot_str
+          echo
           break
         fi
         i=$(($i+1))
