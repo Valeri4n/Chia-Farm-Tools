@@ -142,7 +142,7 @@ print_header(){
   printf "$xch_space$(tput setaf 6)XCH$xch_str: $(tput setaf ${xch_color})$xch_value $(tput setaf ${xch_color1})$code$(tput setaf 6) $change_str\n"
   printf "$(tput setaf ${claim_color})$wallet_str $walletID $(tput setaf ${total_color})${wallet_total} xch\n"
   printf "$(tput setaf 3)            value: $(tput setaf ${total_color})$wallet_value\n"
-  printf "$(tput setaf 7)$etw_str$etw$block_since$block_print\n"
+  printf "$(tput setaf 7)$etw_str$etw-$block_since$block_print\n"
   printf "$(tput setaf ${claim_color})$blk_space$block_claim\n"
 }
 
@@ -182,30 +182,48 @@ price_change(){
 get_etw(){
   etw_full=$(chia farm summary|grep "Expected time to win:"|awk -F": " '{print $2}')
   if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
-    etw_day=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
-    if [[ ${#etw_day} -lt 2 ]]; then
-      etw_day="0$etw_day"
-    fi
+    etw_yr=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+    if [[ ${etw_yr} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_yr="${etw_yr} yr${plural} "
   else
-    etw_day="00"
+    etw_yr=""
+  fi
+  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
+    etw_mon=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+    if [[ ${etw_mon} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_mon="${etw_mon} mon${plural} "
+  else
+    etw_mon=""
+  fi
+  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
+    etw_wk=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+    if [[ ${etw_wk} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_wk="${etw_wk} wk${plural} "
+  else
+    etw_wk=""
+  fi
+  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
+    etw_day=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+    if [[ ${etw_day} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_day="${etw_day} day{plural} "
+  else
+    etw_day=""
   fi
   if [[ $(echo $etw_full|grep hour|wc -l) -gt 0 ]]; then
     etw_hrs=$(echo $etw_full|awk -F" hour" '{print $1}'|awk '{print $NF}'|sed 's/ //')
-    if [[ ${#etw_hrs} -lt 2 ]]; then
-      etw_hrs="0$etw_hrs"
-    fi
+    if [[ ${etw_hrs} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_hrs="${etw_hrs} hr${plural} "
   else
-    etw_hrs="00"
+    etw_hrs=""
   fi
   if [[ $(echo $etw_full|grep min|wc -l) -gt 0 ]]; then
     etw_min=$(echo $etw_full|awk -F" min" '{print $1}'|awk '{print $NF}'|sed 's/ //')
-    if [[ ${#etw_min} -lt 2 ]]; then
-      etw_min="0$etw_min"
-    fi
+    if [[ ${etw_min} -eq 1 ]]; then plural=""; else plural="s"; fi
+    etw_min="${etw_min} min${plural} "
   else
-    etw_min="00"
+    etw_min=""
   fi
-  etw="${etw_day}d ${etw_hrs}h ${etw_min}m "
+  etw="${etw_yr}${etw_mon}${etw_wk}${etw_day}${etw_hrs}${etw_min}"
 }
 
 xch_price(){
