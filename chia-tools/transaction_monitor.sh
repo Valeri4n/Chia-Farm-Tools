@@ -9,6 +9,7 @@
 # Claimed rewards are aggregated into a single line with the number of block rewards claimed in that group
 #
 # Alert sounds don't play inside tmux window. Use 'ctrl-b : set-option bell-action any' for tmux bar flash
+# Can also ssh to Linux host from Windows to ahve Windows play alert sound on new block
 
 # email requires installing mailutils and ssmtp - maybe ssmtp only? Not currently installed
 
