@@ -31,7 +31,9 @@ sudo apt install -y chia-blockchain-cli
 
 ## Uninstall cuda and nvidia  
 Sometimes this step is needed if nvidia-smi or plotting isn't performing properly. Best to wipe it and start with fresh cusa install.  
-`sudo apt remove --purge nvidia* cuda-{c,d,g,l,n,o,p,s,t,v}* -y`  
+```
+sudo apt remove --purge nvidia* cuda-{c,d,g,l,n,o,p,s,t,v}* -y
+```  
 
 ## Install cuda and nvidia  
 Change distribution (distro) and architecture (arch) as needed  
