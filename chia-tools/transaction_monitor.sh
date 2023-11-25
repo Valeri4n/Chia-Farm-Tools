@@ -9,7 +9,7 @@
 # Claimed rewards are aggregated into a single line with the number of block rewards claimed in that group
 #
 # Alert sounds don't play inside tmux window. Use 'ctrl-b : set-option bell-action any' for tmux bar flash
-# Can also ssh to Linux host from Windows to ahve Windows play alert sound on new block
+# Can also ssh to Linux host from Windows host to have Windows play alert sound on new block
 
 # email requires installing mailutils and ssmtp - maybe ssmtp only? Not currently installed
 
@@ -182,22 +182,22 @@ price_change(){
 
 get_etw(){
   etw_full=$(chia farm summary|grep "Expected time to win:"|awk -F": " '{print $2}')
-  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
-    etw_yr=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+  if [[ $(echo $etw_full|grep year|wc -l) -gt 0 ]]; then
+    etw_yr=$(echo $etw_full|awk -F" year" '{print $1}'|sed 's/ //')
     if [[ ${etw_yr} -eq 1 ]]; then plural=""; else plural="s"; fi
     etw_yr="${etw_yr} yr${plural} "
   else
     etw_yr=""
   fi
-  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
-    etw_mon=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+  if [[ $(echo $etw_full|grep month|wc -l) -gt 0 ]]; then
+    etw_mon=$(echo $etw_full|awk -F" month" '{print $1}'|sed 's/ //')
     if [[ ${etw_mon} -eq 1 ]]; then plural=""; else plural="s"; fi
     etw_mon="${etw_mon} mon${plural} "
   else
     etw_mon=""
   fi
-  if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
-    etw_wk=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
+  if [[ $(echo $etw_full|grep week|wc -l) -gt 0 ]]; then
+    etw_wk=$(echo $etw_full|awk -F" week" '{print $1}'|sed 's/ //')
     if [[ ${etw_wk} -eq 1 ]]; then plural=""; else plural="s"; fi
     etw_wk="${etw_wk} wk${plural} "
   else
@@ -206,7 +206,7 @@ get_etw(){
   if [[ $(echo $etw_full|grep day|wc -l) -gt 0 ]]; then
     etw_day=$(echo $etw_full|awk -F" day" '{print $1}'|sed 's/ //')
     if [[ ${etw_day} -eq 1 ]]; then plural=""; else plural="s"; fi
-    etw_day="${etw_day} day{plural} "
+    etw_day="${etw_day} day${plural} "
   else
     etw_day=""
   fi
@@ -228,11 +228,12 @@ get_etw(){
 }
 
 xch_price(){
-  xch_return=$(curl "https://api.coingecko.com/api/v3/simple/price?ids=chia&vs_currencies=usd&include_market_cap=false&include_24hr_vol=false&include_24hr_change=flase&include_last_updated_at=true&precision=full" -s)
-  xch_value=$(echo $xch_return|awk -F "," '{print $1}'|awk -F ":" '{print $3}')
-  if [[ -z $xch_value ]] || [[ $(echo $xch_return|grep "error_code"|wc -l) -gt 0 ]]; then
-    xch_value=`curl "https://www.coingecko.com/en/coins/chia" -s|grep "data-coin-symbol=.*xch.*data-target="|sed -n 3p|awk -F "price.price" '{print $2}'|cut -c 4-|head -c 5`
-  fi
+  #xch_return=$(curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "https://api.coingecko.com/api/v3/simple/price?ids=chia&vs_currencies=usd&include_market_cap=false&include_24hr_vol=false&include_24hr_change=false&include_last_updated_at=true&precision=full" -s -k)
+  #xch_value=$(echo $xch_return|awk -F "," '{print $1}'|awk -F ":" '{print $3}')
+  #xch_return=$(curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "" -s -k)
+  #if [[ -z $xch_value ]] || [[ $(echo $xch_return|grep "error_code"|wc -l) -gt 0 ]]; then
+    xch_value=`curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "https://www.coingecko.com/en/coins/chia" -s -k|grep "data-coin-symbol=.*xch.*data-target="|sed -n 3p|awk -F "price.price" '{print $2}'|cut -c 4-|head -c 5`
+  #fi
   price_change
   wallet_balance
 }
