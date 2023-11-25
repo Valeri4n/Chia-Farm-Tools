@@ -17,7 +17,7 @@
 
 get_version()
 {
-  version=0.4
+  version=0.5
 }
 
 variables(){
@@ -228,12 +228,7 @@ get_etw(){
 }
 
 xch_price(){
-  #xch_return=$(curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "https://api.coingecko.com/api/v3/simple/price?ids=chia&vs_currencies=usd&include_market_cap=false&include_24hr_vol=false&include_24hr_change=false&include_last_updated_at=true&precision=full" -s -k)
-  #xch_value=$(echo $xch_return|awk -F "," '{print $1}'|awk -F ":" '{print $3}')
-  #xch_return=$(curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "" -s -k)
-  #if [[ -z $xch_value ]] || [[ $(echo $xch_return|grep "error_code"|wc -l) -gt 0 ]]; then
-    xch_value=`curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "https://www.coingecko.com/en/coins/chia" -s -k|grep "data-coin-symbol=.*xch.*data-target="|sed -n 3p|awk -F "price.price" '{print $2}'|cut -c 4-|head -c 5`
-  #fi
+  xch_value=`curl -H "User-Agent: Mozilla/5.0 Chrome/44.0.2403.89" "https://www.coingecko.com/en/coins/chia" -s -k|grep "data-coin-symbol=.*xch.*data-target="|sed -n 3p|awk -F "price.price" '{print $2}'|cut -c 4-|head -c 5`
   price_change
   wallet_balance
 }
