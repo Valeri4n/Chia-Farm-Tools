@@ -24,6 +24,7 @@ sudo apt full-upgrade -y
 sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs\
  ledmon tmux linux-image-generic-hwe-22.04
 sudo smbpasswd -a <<<samba username>>>
+sudo reboot
 ```
 
 ## Upgrade to latest kernel
