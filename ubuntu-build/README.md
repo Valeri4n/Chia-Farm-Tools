@@ -2,6 +2,7 @@
 Install items as needed  
 
 ## Resize ubuntu root drive to max space  
+THis step may be needed if the linux install did not use all of the available drive space since Ubuntu default install doesn't always.
 ```
 name=$(df -h /home|sed -n 2p|awk '{print $1}')
 sudo lvextend -l +100%FREE $name
