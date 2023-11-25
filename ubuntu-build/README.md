@@ -21,7 +21,8 @@ sudo timedatectl set-timezone <<<your timezone>>>
 export DEBIAN_FRONTEND=noninteractive
 sudo apt update
 sudo apt full-upgrade -y
-sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs ledmon tmux linux-image-generic-hwe-22.04
+sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs\
+ ledmon tmux linux-image-generic-hwe-22.04
 sudo smbpasswd -a <<<samba username>>>
 ```
 
@@ -65,8 +66,8 @@ wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-archive-keyring.gpg
 sudo mv cuda-archive-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/ /" | \
-  sudo tee /etc/apt/sources.list.d/cuda-$distro-$arch.list
+echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/\
+ /"|sudo tee /etc/apt/sources.list.d/cuda-$distro-$arch.list
 wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-$distro.pin
 sudo mv cuda-$distro.pin /etc/apt/preferences.d/cuda-repository-pin-600
 sudo apt update
