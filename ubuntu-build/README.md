@@ -52,7 +52,7 @@ sudo apt remove --purge '^nvidia-.*' -y
 sudo apt remove --purge '^libnvidia-.*' -y
 sudo apt remove --purge '^cuda-.*' -y
 sudo apt autoremove -y
-sudo apt install linux-headers-$(uname -r)
+sudo apt install linux-headers-$(uname -r) -y
 sudo reboot
 ```  
 
