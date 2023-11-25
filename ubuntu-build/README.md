@@ -47,7 +47,8 @@ sudo apt install -y chia-blockchain-cli
 ```  
 
 ## Uninstall cuda and nvidia  
-Sometimes this step is needed if nvidia-smi or plotting isn't performing properly. Best to wipe it and start with fresh cusa install.  
+Sometimes this step is needed if nvidia-smi or plotting isn't performing properly.  
+ Best to wipe it and start with fresh cuda install.  
 ```
 sudo apt remove --purge '^nvidia-.*' -y
 sudo apt remove --purge '^libnvidia-.*' -y
@@ -66,7 +67,8 @@ wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-archive-keyring.gpg
 sudo mv cuda-archive-keyring.gpg /usr/share/keyrings/cuda-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/\
+echo "deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg]\
+ https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/\
  /"|sudo tee /etc/apt/sources.list.d/cuda-$distro-$arch.list
 wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-$distro.pin
 sudo mv cuda-$distro.pin /etc/apt/preferences.d/cuda-repository-pin-600
