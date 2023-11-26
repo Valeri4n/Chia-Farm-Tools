@@ -34,6 +34,9 @@ sudo apt update
 sudo apt full-upgrade -y
 sudo apt install -y linux-image-generic-hwe-22.04
 sudo reboot
+```
+After upgrading the kernel and reboot, this will install the linux headers  
+```
 sudo apt install linux-headers-$(uname -r)
 sudo reboot
 ```
