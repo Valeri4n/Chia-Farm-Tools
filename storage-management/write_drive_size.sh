@@ -3,7 +3,7 @@
 # Copyright 2023 by Valerian
 
 # This script will add the drive size and nft poitn files to a drive
-# Inpout values for path, SRC drive True or False, and nft NAME
+# Inpout values for drive path, SRC drive True or False, and nft NAME
 
 path=
 SRC=true
