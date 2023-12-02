@@ -17,8 +17,7 @@ if [[ $(echo $size|tail -c 2) == G ]]; then
   size=$(bc <<< "scale=2 ; $(echo $size|head -c -2) / 1000")
   size=$(printf "%'0.2f" "$size")T
 fi
-printf "${path}/drive-size-${space}-${size}, nft-$NFT, format complete.\n\n"  is m set?
 touch ${path}/nft${nft_sw}${NFT}
 new_file=${path}/drive-size-${space}-${size}
 touch $new_file
-echo $new_file
+echo "$new_file nft${nft_sw}${NFT}"
