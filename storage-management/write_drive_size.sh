@@ -3,7 +3,8 @@
 # Copyright 2023 by Valerian
 
 # This script will add the drive size and nft poitn files to a drive
-# Inpout values for mountpoint, SRC drive True or False, and nft NAME
+# Inpout values for mountpoint, SRC drive true or false, and nft NAME
+# SRC is true when it is a plotter output cache drive. False when a storage drive.
 
 mountpoint=/mnt/cache
 SRC=true
