@@ -21,4 +21,4 @@ fi
 touch ${mountpoint}/nft${nft_sw}${NFT}
 new_file=${mountpoint}/drive-size-${space}-${size}
 touch $new_file
-echo "$new_file nft${nft_sw}${NFT}"
+echo "$new_file nft${nft_sw}${nft}"
