@@ -14,4 +14,5 @@ Options:
   -wp, --wallet-rpc-port INTEGER  Set the port where the Wallet is hosting the
                                   RPC interface. See the rpc_port under wallet
                                   in config.yaml
-  -h, --help                      Show this message and exit.```  
+  -h, --help                      Show this message and exit.
+```  
