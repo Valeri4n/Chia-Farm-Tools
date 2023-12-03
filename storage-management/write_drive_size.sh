@@ -8,7 +8,7 @@
 
 mountpoint=/mnt/cache
 SRC=true
-nft=NAME
+NFT=NAME
 
 drive=$(mount|grep $mountpoint)
 if $SRC; then nft_sw="_"; else nft_sw="-"; fi
@@ -21,4 +21,4 @@ fi
 touch ${mountpoint}/nft${nft_sw}${NFT}
 new_file=${mountpoint}/drive-size-${space}-${size}
 touch $new_file
-echo "$new_file nft${nft_sw}${nft}"
+echo "$new_file nft${nft_sw}${NFT}"
