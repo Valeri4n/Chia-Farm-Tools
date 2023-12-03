@@ -1,6 +1,7 @@
 # Chia Help Output  
 ### Claim Rewards (for self-pooling)  
-```:~$ chia plotnft claim -h
+```
+:~$ chia plotnft claim -h
 Usage: chia plotnft claim [OPTIONS]
 
   Claim rewards from a plot NFT
