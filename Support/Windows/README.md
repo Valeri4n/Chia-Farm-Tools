@@ -14,7 +14,7 @@ This might be worth saving as a note for future reference:
 ```  
 ```
 Two ways to do this:
-File Explorer (this is how we did it yesterday)
+File Explorer
 
     Open file explorer
     Navigate to the bladebit_cuda folder
