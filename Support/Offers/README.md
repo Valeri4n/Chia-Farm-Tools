@@ -3,7 +3,7 @@ Question: How can I add 300 offers of 0.05 Chia each to each NFT separately with
 ```
 You can write a script or simple loop command using cli. Help output below. You could use a csv file for input if you have something already, or generate it. Should be fairly straight forward.
 
-There might be ways to then upload those offers. Easy if they have an API or commands that can be run. If they only have a web interface, you'll need to see how you might be able to auto populate those fields. Sometimes can be done with URL injection, but often not. Have to test and see what works.
+There might be ways to then upload those offers. Easy if they have an API or commands that can be run. If they only have a web interface, you'll need to see how you might be able to auto populate those fields. Sometimes can be done through the URL, but often not. Have to test and see what works.
 
 :~$ chia wallet make_offer -h
 Usage: chia wallet make_offer [OPTIONS]
