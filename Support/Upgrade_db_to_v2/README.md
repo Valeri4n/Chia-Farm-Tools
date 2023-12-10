@@ -1,5 +1,5 @@
 # Upgrade db to v2  
-If when starting hte GUI the app constinues to spin and doesn't proceed, the problem is likely caused by using v1 of the db with a newer chia client version. The db must be upgraded to v2. There are several ways to do this:  
+If when starting hte GUI the app continues to spin and doesn't proceed, the problem is likely caused by using v1 of the db with a newer chia client version. The db must be upgraded to v2. There are several ways to do this:  
 ### Copy db from another chia client  
 ```
 1. Stop the chia app on both the up to date client and the one to receive the db copy. Not performing this step will cause a corrupted db for both source and destination chia apps.
