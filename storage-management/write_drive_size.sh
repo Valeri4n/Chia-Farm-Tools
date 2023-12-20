@@ -5,8 +5,9 @@
 # This script will add the drive size and nft poitn files to a drive
 # Inpout values for mountpoint, SRC drive true or false, and nft NAME
 # SRC is true when it is a plotter output cache drive. False when a storage drive.
+# Run as ./write_drive_size.sn <mountpoint>
 
-mountpoint=/mnt/cache
+mountpoint=$1
 SRC=true
 NFT=NAME
 
