@@ -38,3 +38,7 @@ Change ${server} to your specific location or type in `server=[location]` prior 
 If needing a third layer of drive names, below shows modification of the i loop with an "a" layer added, example: sd<ins>a</ins>fg  
   
 `for i in {"",{a..z},a{a..z}}; ...`  
+### Single command for removing bad plots in log file based on "badbit or failbit"  
+```
+cnt=0; for plot in $(cat .chia/mainnet/log/debug.log|grep badbit|awk -F"qualities for " '{print $2}'|awk -F". " '{print $1}'); do if [[ $(ls $plot 2>/dev/null) > 0 ]]; then cnt=$(($cnt + 1)); echo "Removing $cnt - $plot"; rm $plot; fi; done; echo "Deleted $cnt bad plots!"
+```  
