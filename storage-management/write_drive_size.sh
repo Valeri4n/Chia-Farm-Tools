@@ -4,6 +4,7 @@
 
 # This script will add the drive size and nft pointer files to a drive
 # Input values for mountpoint, SRC drive true or false, and nft NAME
+# NAME is intended for a farmer/contract pair to help organize plots. Change as needed.
 # SRC is true when it is a plotter output cache drive. False when a storage drive.
 # Run as ./write_drive_size.sn <mountpoint>
 
