@@ -2,13 +2,13 @@
 #
 # Copyright 2023 by Valerian
 
-# This script will add the drive size and nft poitn files to a drive
-# Inpout values for mountpoint, SRC drive true or false, and nft NAME
+# This script will add the drive size and nft pointer files to a drive
+# Input values for mountpoint, SRC drive true or false, and nft NAME
 # SRC is true when it is a plotter output cache drive. False when a storage drive.
 # Run as ./write_drive_size.sn <mountpoint>
 
 mountpoint=$1
-SRC=true
+SRC=false
 NFT=NAME
 
 drive=$(mount|grep $mountpoint)
