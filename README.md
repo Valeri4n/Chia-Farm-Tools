@@ -12,7 +12,7 @@ To get the pool launcher id, from the gui, go to Pooling -> press three dots on 
 ### CLI
 - First get the launcher id with `chia plotnft show`  
 - Then get the login link with `chia plotnft get_login_link -l [launcher id]`  
-- Or use this, ``LAUNCHER=`echo|chia plotnft show|grep Launcher|awk '{print $3}'|sed -n '1p'` && chia plotnft get_login_link -l $LAUNCHER``  
+- Or use this, ``LAUNCHER=`echo|chia plotnft show|grep -A 2 FARMING_TO_POOL|grep Launcher|awk '{print $3}'|sed -n '1p'` && chia plotnft get_login_link -l $LAUNCHER``  
   - Modify '1p' to the number of the nft you want.  
 ## Make Live Copy of Chia DB  
 Make an online copy of the db without having to take your farmer down using sqlite3  
