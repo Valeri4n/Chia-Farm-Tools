@@ -222,7 +222,7 @@ while true; do
                   finLOC=$drive
                   # Move the plot
                   used=`du $SRC|awk '{print $1}'|tail -1`
-                  size=`ls $SRC/drive-size-* 2>/dev/null|awk -F "drive-size-" '{print $2}'`
+                  size=`ls $SRC/drive-size-* 2>/dev/null|awk -F- '{print $3}'`
                   full=`printf "%.0f" $(awk "BEGIN {print $used/$size*100}")`
                   DT=`date +"%m-%d"`; TM=`date +"%T"`
                   num_plots=`ls $SRC/*.plot 2>/dev/null|wc -l`
