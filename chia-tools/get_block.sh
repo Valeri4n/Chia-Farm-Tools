@@ -20,21 +20,29 @@
 # This will check the last wallet synced. Check different wallet by syncing other wallet.
 
 
-printf "Commencing block lookup\n\n"
-echo|chia wallet get_transactions > wallet_data
-chia rpc farmer get_harvesters > plot_data
-block_sub=20 # number to search backwards for proper block
+block_sub=20 # default number to search backwards for proper block
+stradd=" for the last block"
 first_check=1
 if [[ -z $1 ]]; then
   last_check=1
 elif [[ $1 = -o ]]; then # only this block
   last_check=$2
   first_check=$2
+  stradd=" for previous block # $last_check"
 elif [[ $1 = all ]]; then 
   last_check=$(grep -B 3 rewarded wallet_data|grep Transaction|awk -F"Transaction " '{print $2}'|wc -l)
 else
   last_check=$1
+  if [[ $last_check == 1 ]]; then
+    plural=""
+  else
+    plural="s"
+  fi
+  stradd=" for the last $last_check block$plural"
 fi
+printf "\nCommencing block lookup$stradd\n\n"
+echo|chia wallet get_transactions > wallet_data
+chia rpc farmer get_harvesters > plot_data
 block_txns=$(grep -B 2 -A 2 rewarded wallet_data|grep "Transaction"|awk -F"Transaction " '{print $2}')
 txn_times=$(grep -B 2 -A 2 rewarded wallet_data|grep "Created"|awk -F"Created at: " '{print $2}'|sed 's/ /,/')
 
@@ -90,7 +98,7 @@ for (( check=${first_check}; check<=${last_check}; check++)); do
   if ! $plot_found; then
     printf "\r  $(tput setaf 3)Plot not found$(tput sgr0)                               \n\n"
   else
-    color="$(tput setaf 5)"
+    color="$(tput setaf 6)"
     if [[ ! -z $nft ]]; then nft=${nft}-; fi
     printf "${color}\n$txn_time - block=${plot_block}\npkey=${pkey}\n//$plot_host_ip$plot$(tput sgr0)\n\n"
   fi
