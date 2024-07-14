@@ -1,4 +1,4 @@
-## TMUX  
+### TMUX  
 I've found tmux to be a great way to display multiple panes in one window for showing status. This will create a persistent session that can be connected to from any ssh connection or terminal within the host and will maintain the session if the terminal is disconnected. Various scripts and status commands can tehn be run within each pane.
   
 To install tmux: `sudo apt install tmux`  
