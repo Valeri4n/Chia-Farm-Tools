@@ -1,6 +1,6 @@
 ## Chia XCH Price Data  
 I've compiled historical price data for XCH using various sources. Use as needed.  
-Times are in Mountain Time. Make adjustments for your timezone.  
+Times are in Mountain Time and account for US Daylight Savings Time. Make adjustments for your timezone.  
 ### Sources
 The following sources were used for the historical data  
   
