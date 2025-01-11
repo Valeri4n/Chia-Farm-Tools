@@ -15,7 +15,7 @@
   fi
   if [[ $(echo $etw_full|grep month|wc -l) -gt 0 ]]; then
     etw_mon=$(echo $etw_full|awk -F" month" '{print $1}'|sed 's/ //g')
-    mon_hrs=$((etw_mon * 30 * 24))
+    mon_hrs=$(($etw_mon * 30 * 24))
   else
     mon_hrs=0
   fi
@@ -39,12 +39,12 @@
   fi
   if [[ $(echo $etw_full|grep min|wc -l) -gt 0 ]]; then
     etw_min=$(echo $etw_full|awk -F" min" '{print $1}'|awk '{print $NF}'|sed 's/ //g')
-    min_hrs=$(echo "scale=2; ${etw_min} / 60"|bc)
+    min_hrs=$(echo "scale=4; ${etw_min} / 60"|bc)
   else
     min_hrs=0
   fi
   if [[ $min_hrs > 0 ]]; then
-    etw_scale=6
+    etw_scale=4
   else
     etw_scale=0
   fi
