@@ -5,6 +5,8 @@
 # This will check drive mounts every X number of seconds.
 # If any drives are attached to the system and not mounted, 
 #   it will mount them automatically.
+# This script is tailored for drives that do not have partitions.
+#   It might require modification to work with partitions. 
 # Change parameters as desired.
 
 type=ext4
