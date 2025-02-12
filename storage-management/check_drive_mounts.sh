@@ -3,6 +3,7 @@
 # Copyright 2025 by Valerian
 #
 # This will check drive mounts every X number of seconds.
+# Run this script with sudo privilege.
 # If any drives are attached to the system and not mounted, 
 #   it will mount them automatically.
 # This script is tailored for drives that do not have partitions.
