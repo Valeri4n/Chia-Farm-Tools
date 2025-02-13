@@ -37,10 +37,11 @@ printf "\n**************************** RUNNING UPGRADE *************************
 sudo apt full-upgrade -y
 printf "\n**************** INSTALLING CUDA AND LATEST NVIDIA DRIVER ****************\n\n"
 for i in {1..10}; do
-  if [[ $(sudo apt list nvidia-utils-* 2>/dev/null|tail -n $i|awk -F/ '{print $1}'|awk -F- '{print NF}') == "server" ]]; then
+  version_check=$(sudo apt list nvidia-utils-* 2>/dev/null|tail -n $i|awk -F/ '{print $1}'|sed -n 1p)
+  if [[ $(echo $version_check|awk -F- '{print $NF}') == "server" ]]; then
     continue
   else
-    nvidia_version=$(sudo apt list nvidia-utils-* 2>/dev/null|tail -n $i|awk -F/ '{print $1}')
+    nvidia_version=$version_check
     break
   fi
 done
