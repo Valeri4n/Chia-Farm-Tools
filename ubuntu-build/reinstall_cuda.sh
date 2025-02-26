@@ -12,7 +12,7 @@ if [[ $(/usr/bin/id -u) -ne 0 ]]; then
 fi
 
 os=$(lsb_release -a 2>/dev/null|grep Distributor|awk '{print $3}'|sed 's/[A-Z]/\L&/g')
-release=$(lsb_release -a 2>/dev/null|grep Release|awk '{print $3}'|sed 's/\.//g')
+release=$(lsb_release -a 2>/dev/null|grep Release|awk '{print $2}'|sed 's/\.//g')
 distro=${os}${release}
 arch=$(uname -p)
 
