@@ -12,7 +12,21 @@ if [[ $(/usr/bin/id -u) -ne 0 ]]; then
 fi
 
 os=$(lsb_release -a 2>/dev/null|grep Distributor|awk '{print $3}'|sed 's/[A-Z]/\L&/g')
-release=$(lsb_release -a 2>/dev/null|grep Release|awk '{print $2}'|sed 's/\.//g')
+release=$(lsb_release -a 2>/dev/null|grep Release|awk '{print $3}'|sed 's/\.//g')
+#
+# Test for linux mint isntallation. Adjust mapping as needed for future versions.
+#
+if [ $os = "linuxmint" ]; then
+  os=ubuntu
+  if [ $release = "22.1" ]; then
+    release=24.04
+  else
+    echo "***********************************************"
+    echo "* NEED TO UPDATE SCRIPT FOR LINUXMINT VERSION *"
+    echo "***********************************************"
+    exit
+  fi
+fi
 distro=${os}${release}
 arch=$(uname -p)
 
@@ -49,6 +63,8 @@ sudo apt install -y cuda nvidia-cuda-toolkit nvidia-gds $nvidia_version
 printf "\n************************* INSTALLING NVIDIA-GDS **************************\n\n"
 sudo apt install -y nvidia-gds
 printf "\n****************** INSTALLATION COMPLETE - CLEANING UP *******************\n\n"
+sudo apt update
+sudo apt upgrade -y
 sudo apt autoremove -y
 printf "\n**************************** CHECKING INSTALL ****************************\n\n"
 if [[ $(nvidia-smi|sed -n 3p|grep "Driver Version"|wc -l) -eq 0 ]] then
