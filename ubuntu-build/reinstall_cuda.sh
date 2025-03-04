@@ -16,9 +16,9 @@ release=$(lsb_release -a 2>/dev/null|grep Release|awk '{print $3}'|sed 's/\.//g'
 #
 # Test for linux mint isntallation. Adjust mapping as needed for future versions.
 #
-if [ $os = "linuxmint" ]; then
+if [ $os -eq "linuxmint" ]; then
   os=ubuntu
-  if [ $release = "22.1" ]; then
+  if [ $release -eq "22.1" ]; then
     release=24.04
   else
     echo "***********************************************"
