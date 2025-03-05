@@ -24,7 +24,6 @@ verify_internet(){
   timeout=2
   if ping -c $count -W $timeout $host > /dev/null 2>&1; then
     echo "Internet connection is UP"
-    exit 0
   else
     echo "Internet connection is DOWN"
     exit 1
@@ -33,7 +32,6 @@ verify_internet(){
   host="google.com" # Google Website
   if ping -c $count -W $timeout $host > /dev/null 2>&1; then
     echo "DNS is working"
-    exit 0
   else
     echo "DNS is NOT working"
     exit 1
