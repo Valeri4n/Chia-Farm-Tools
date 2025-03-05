@@ -155,13 +155,19 @@ start_chia(){
   #copy the db file
   db_file="blockchain_v2_mainnet.sqlite"
   db_path=$(find /mnt -name ${db_file} 2>/dev/null)
-  db_chia_folder="/home/$USER/.chia/mainnet/db/"
-  mkdir -p $db_chia_folder
-  rsync -WhP ${db_path} ${db_chia_folder}${db_file}
+  if [[ ! -z $db_path ]]; then
+    echo "COPYING CHIA DB FILE"
+    db_chia_folder="/home/$USER/.chia/mainnet/db/"
+    mkdir -p $db_chia_folder
+    rsync -WhP ${db_path} ${db_chia_folder}${db_file}
+  fi
   key_folder=".chia_keys"
   key_path=$(find /mnt -name ${key_folder} 2>/dev/null)
-  key_chia_folder="/home/$USER/"
-  rsync -WhrP ${key_path} ${key_chia_folder}${key_folder}
+  if [[ ! -z $key_path ]]; then
+    echo "COPYING CHIA KEYS FOLDER"
+    key_chia_folder="/home/$USER/"
+    rsync -WhrP ${key_path} ${key_chia_folder}${key_folder}
+  fi
   chia init
   nohup /usr/bin/chia-blockchain &
 }
