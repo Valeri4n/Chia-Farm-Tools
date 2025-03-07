@@ -62,7 +62,7 @@ install_apps(){
   sudo apt update
   sudo apt full-upgrade -y
   sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs\
-  ledmon tmux ${linux_image}
+  ledmon tmux openssh-server ${linux_image}
   #sudo smbpasswd -a <<<samba username>>> Only needed if using samba mounts
 }
 
