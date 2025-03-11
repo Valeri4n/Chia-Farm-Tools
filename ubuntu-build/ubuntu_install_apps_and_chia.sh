@@ -6,6 +6,11 @@
 # Ensure plot drives are physically connected prior to running but do not mount them.
 # The script will mount drives and load into chia.
 # Script must be run as root. Run with '|tee -a ubuntu_build.txt' at end to log progress
+#
+# Launch with:
+# wget https://raw.githubusercontent.com/Valeri4n/Chia-Farm-Tools/refs/heads/main/ubuntu-build/ubuntu_install_apps_and_chia.sh
+# chmod +x ubuntu_install_apps_and_chia.sh
+# sudo ./ubuntu_install_apps_and_chia.sh|tee -a ubuntu_build.txt
 
 setup_tmux(){
   if [[ ! -f /home/${this_user}/.tmux.conf ]]; then
