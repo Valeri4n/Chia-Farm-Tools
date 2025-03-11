@@ -19,26 +19,27 @@ check_root(){
 verify_internet(){
   echo "VERIFY INTERNET CONNECTIVITY"
   # check internet connectivity
-  host="8.8.8.8" # Google Public DNS
+  #host="8.8.8.8" # Google Public DNS
   count=1
   timeout=2
-  if ping -c $count -W $timeout $host > /dev/null 2>&1; then
-    echo "Internet connection is UP"
-  else
-    echo "Internet connection is DOWN"
-    exit 1
-  fi
-  # check DNS working
-  host="google.com" # Google Website
-  if ping -c $count -W $timeout $host > /dev/null 2>&1; then
-    echo "DNS is working"
-  else
-    echo "DNS is NOT working"
-    exit 1
-  fi
+  for host in {8.8.8.8,google.com}; do
+    if [[ "$host" == "google.com" ]]; then
+      msg="DNS"
+    else
+      msg="INTERNET"
+    fi
+    if [[ $(ping -c $count -W $timeout $host|grep -c "1 received") -eq 1 ]]; then
+      echo "$msg is working"
+    else
+      echo "$msg is NOT working"
+      #exit 1
+    fi
+  done
 }
 
 maximize_drivespace(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_drivespace_started-$this_user-$this_time
   echo "MAXIMIZING MAIN DRIVE SPACE"
   name=$(df -h /home|sed -n 2p|awk '{print $1}')
   sudo lvextend -l +100%FREE $name
@@ -48,9 +49,13 @@ maximize_drivespace(){
   df -h /home
   echo
   tput sgr0
+  touch /home/$this_user/.InintializingUbuntuBuild_drivespace_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_drivespace_started-$this_user-$this_time
 }
 
 install_apps(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_apps_started-$this_user-$this_time
   echo "INSTALLING APPS"
   ## Initial app install  
   # Replace `<<<your timezone>>>` with your timezone. Get list with `timedatectl list-timezones`  
@@ -62,16 +67,24 @@ install_apps(){
   sudo apt update
   sudo apt full-upgrade -y
   sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs\
-  ledmon tmux openssh-server dhclient isc-dhcp-client ${linux_image}
+  ledmon tmux ${linux_image}
   #sudo smbpasswd -a <<<samba username>>> Only needed if using samba mounts
+  touch /home/$this_user/.InintializingUbuntuBuild_apps_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_apps_started-$this_user-$this_time
 }
 
 install_headers(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_headers_started-$this_user-$this_time
   echo "INSTALLING LINUX-HEADERS"
   sudo apt install linux-headers-$(uname -r)
+  touch /home/$this_user/.InintializingUbuntuBuild_headers_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_headers_started-$this_user-$this_time
 }
 
 install_cuda(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_cuda_started-$this_user-$this_time
   echo "INSTALLING CUDA"
   ## Install cuda and nvidia  
   os=$(lsb_release -a 2>/dev/null|grep Distributor|awk '{print $3}'|sed 's/[A-Z]/\L&/g')
@@ -91,9 +104,13 @@ install_cuda(){
   sudo apt install -y cuda
   sudo apt install -y nvidia-gds
   sudo apt autoremove -y
+  touch /home/$this_user/.InintializingUbuntuBuild_cuda_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_cuda_started-$this_user-$this_time
 }
 
 verify_cuda(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_cudaVerify_started-$this_user-$this_time
   echo "VERIFYING CUDA INSTALL"
   if [[ $(nvidia-smi|sed -n 3p|grep -c "Driver Version") -eq 0 ]]; then
     printf "\nNVIDIA-SMI DOES NOT APPEAR TO BE WORKING.\n\nTROUBLESHOOT TO FIND ERROR AND RUN SCRIPT AGAIN.\n"
@@ -105,9 +122,13 @@ verify_cuda(){
   else
     printf "\nCUDA INSTALL SUCCESSFUL\n"
   fi
+  touch /home/$this_user/.InintializingUbuntuBuild_cudaVerify_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_cudaVerify_started-$this_user-$this_time
 }
 
 install_chia(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_chia_started-$this_user-$this_time
   ## Install chia-blockchain-cli  
   echo "INSTALLING CHIA-BLOCKCHAIN"
   if [[ $(dpkg -l ubuntu-desktop|grep -c desktop) -eq 0 ]]; then
@@ -120,9 +141,13 @@ install_chia(){
   stable main"|sudo tee /etc/apt/sources.list.d/chia.list > /dev/null
   sudo apt update
   sudo apt install -y chia-blockchain${cli}
+  touch /home/$this_user/.InintializingUbuntuBuild_chia_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_chia_started-$this_user-$this_time
 }
 
 add_plot_drives(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_drives_started-$this_user-$this_time
   echo "MOUNTING AND ADDING PLOT DRIVES"
   drive_count=0
   sudo chown -R $USER: /mnt
@@ -146,9 +171,13 @@ add_plot_drives(){
   else
     echo "No drives were mounted or loaded into chia harvester. Manually add drives later."
   fi
+  touch /home/$this_user/.InintializingUbuntuBuild_drives_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_drives_started-$this_user-$this_time
 }
 
 start_chia(){
+  this_time=$(date +%y%m%d.%H:%M:%S)
+  touch /home/$this_user/.InintializingUbuntuBuild_chiaEnd_started-$this_user-$this_time
   echo "STARTING CHIA"
   #copy the db file
   db_file="blockchain_v2_mainnet.sqlite"
@@ -168,41 +197,54 @@ start_chia(){
   fi
   chia init
   nohup /usr/bin/chia-blockchain &
+  touch /home/$this_user/.InintializingUbuntuBuild_chiaEnd_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
+  rm /home/$this_user/.InintializingUbuntuBuild_chiaEnd_started-$this_user-$this_time
 }
 
-if [ -f /var/run/rebooting-for-cuda ]; then
+# ADDS CRONTAB (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; /path/to/job -with args") | sudo crontab -
+# DELETES LINE crontab -l|grep -v '/path/to/job'|crontab -
+has_errors=false
+SCRIPTPATH=$(realpath "$0")
+if [[ -z $1 ]]; then
+  this_user=$(echo $USER)
+  (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; $SCRIPTPATH $this_user") | sudo crontab -
+fi
+if [ -f /home/$this_user/.InintializingUbuntuBuild_*_started-* ]; then
+  echo *******************************************
+  echo "Script error in $(echo .InintializingUbuntuBuild_*_started-*|awk -F- '{print $2}')!"
+  echo *******************************************
+  exit
+fi
+if [ -f .InintializingUbuntuBuild_cuda_finished* ]; then
   check_root
   verify_cuda
-  rm /var/run/rebooting-for-cuda
-  sudo update-rc.d myupdate remove
   verify_internet
   install_chia
   add_plot_drives
   start_chia
-elif [ -f /var/run/rebooting-for-headers ]; then
+  for file in $(ls -a /home/$this_user/.InintializingUbuntuBuild_*_started-* 2>/dev/null); do
+    has_errors=true
+    touch Ubuntu_build_error_in_$(echo $file|awk -F- '{print $2}')
+  done
+  if ! $has_errors; then
+    touch Ubuntu_build_completed_successfully-$(date +%y%m%d.%H:%M:%S)
+  fi
+  sudo crontab -l|grep -v "${SCRIPTPATH} ${this_user}"|sudo crontab -
+  exit
+elif [ -f .InintializingUbuntuBuild_headers_finished* ]; then
   check_root
   verify_internet
   install_cuda
-  rm /var/run/rebooting-for-headers
-  sudo update-rc.d myupdate remove
-  touch /var/run/rebooting-for-cuda
-  sudo update-rc.d myupdate defaults
   sudo reboot
-elif [ -f /var/run/rebooting-for-apps ]; then
+elif [ -f .InintializingUbuntuBuild_apps_finished* ]; then
   check_root
   verify_internet
   install_headers
-  rm /var/run/rebooting-for-apps
-  sudo update-rc.d myupdate remove
-  touch /var/run/rebooting-for-headers
-  sudo update-rc.d myupdate defaults
   sudo reboot
 else
   check_root
   verify_internet
   maximize_drivespace
   install_apps
-  touch /var/run/rebooting-for-apps
-  sudo update-rc.d myupdate defaults
   sudo reboot
 fi
