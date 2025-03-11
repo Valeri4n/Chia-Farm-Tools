@@ -5,7 +5,33 @@
 # This script will install all programs and drives needed to farm chia for a fresh Ubuntu build.
 # Ensure plot drives are physically connected prior to running but do not mount them.
 # The script will mount drives and load into chia.
-# Script must be run as root.
+# Script must be run as root. Run with '|tee -a ubuntu_build.txt' at end to log progress
+
+setup_tmux(){
+  if [[ ! -f /home/${this_user}/.tmux.conf ]]; then
+    cp /usr/share/doc/tmux/example_tmux.conf /home/${this_user}/.tmux.conf
+    chown ${this_user}: /home/${this_user}/.tmux.conf
+  fi
+  if [[ $(cat /home/${this_user}/.tmux.conf|grep "set -g mouse on"|grep -v "#"|wc -l) -eq 0 ]]; then
+    echo "# Enable mouse mode" >> /home/${this_user}/.tmux.conf
+    echo "set -g mouse on" >> /home/${this_user}/.tmux.conf
+  fi
+}
+
+create_tmux_session(){
+  session=install
+  tmux has-session -t $session 2>/dev/null
+  if [ $? != 0 ]; then
+    tmux new-session -s $session
+  else
+    tmux a -t $session
+    printf "\n\n*******************************************"
+    printf "\n***** SYSTEM DID NOT REBOOT. EXITING. *****"
+    printf "\n*******************************************\n\n"
+    ls -la /home/${this_user}/.InintializingUbuntuBuild*|sort -k 8
+    exit
+  fi
+}
 
 check_root(){
   echo "CHECKING RUN AS ROOT"
@@ -39,7 +65,7 @@ verify_internet(){
 
 maximize_drivespace(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_drivespace_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
   echo "MAXIMIZING MAIN DRIVE SPACE"
   name=$(df -h /home|sed -n 2p|awk '{print $1}')
   sudo lvextend -l +100%FREE $name
@@ -49,13 +75,17 @@ maximize_drivespace(){
   df -h /home
   echo
   tput sgr0
-  touch /home/$this_user/.InintializingUbuntuBuild_drivespace_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_drivespace_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n********** MAXIMIZED DRIVE SPACE **********"
+  printf "\n*******************************************\n\n"
+  sleep 15
 }
 
 install_apps(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_apps_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_apps_started-${this_user}-${this_time}
   echo "INSTALLING APPS"
   ## Initial app install  
   # Replace `<<<your timezone>>>` with your timezone. Get list with `timedatectl list-timezones`  
@@ -66,25 +96,36 @@ install_apps(){
   export DEBIAN_FRONTEND=noninteractive
   sudo apt update
   sudo apt full-upgrade -y
-  sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs\
-  ledmon tmux ${linux_image}
+  sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs ledmon dos2unix ${tmux_install}${linux_image}
+  if [[ ! -z $tmux_install ]]; then
+    setup_tmux
+  fi
   #sudo smbpasswd -a <<<samba username>>> Only needed if using samba mounts
-  touch /home/$this_user/.InintializingUbuntuBuild_apps_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_apps_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_apps_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_apps_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************* INSTALLED APPS **************"
+  printf "\n*******************************************\n\n"
+  sleep 15
 }
 
 install_headers(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_headers_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_headers_started-${this_user}-${this_time}
   echo "INSTALLING LINUX-HEADERS"
   sudo apt install linux-headers-$(uname -r)
-  touch /home/$this_user/.InintializingUbuntuBuild_headers_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_headers_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_headers_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_headers_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************ INSTALLED HEADERS ************"
+  printf "\n*******************************************\n\n"
+  sleep 15
 }
 
 install_cuda(){
+  tmux new-session
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_cuda_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_cuda_started-${this_user}-${this_time}
   echo "INSTALLING CUDA"
   ## Install cuda and nvidia  
   os=$(lsb_release -a 2>/dev/null|grep Distributor|awk '{print $3}'|sed 's/[A-Z]/\L&/g')
@@ -104,31 +145,37 @@ install_cuda(){
   sudo apt install -y cuda
   sudo apt install -y nvidia-gds
   sudo apt autoremove -y
-  touch /home/$this_user/.InintializingUbuntuBuild_cuda_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_cuda_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_cuda_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_cuda_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************* INSTALLED CUDA **************"
+  printf "\n*******************************************\n\n"
+  sleep 15
 }
 
 verify_cuda(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_cudaVerify_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_cudaVerify_started-${this_user}-${this_time}
   echo "VERIFYING CUDA INSTALL"
   if [[ $(nvidia-smi|sed -n 3p|grep -c "Driver Version") -eq 0 ]]; then
+    printf "\n\n************************************************"
     printf "\nNVIDIA-SMI DOES NOT APPEAR TO BE WORKING.\n\nTROUBLESHOOT TO FIND ERROR AND RUN SCRIPT AGAIN.\n"
-    rm /var/run/rebooting-for-cuda
-    sudo update-rc.d myupdate remove
-    touch /var/run/rebooting-for-cuda
-    sudo update-rc.d myupdate defaults
+    printf "\n\n************************************************"
     exit 1
   else
-    printf "\nCUDA INSTALL SUCCESSFUL\n"
+    printf "\nCUDA INSTALL WAS SUCCESSFUL\n"
   fi
-  touch /home/$this_user/.InintializingUbuntuBuild_cudaVerify_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_cudaVerify_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_cudaVerify_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_cudaVerify_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************** VERIFIED CUDA **************"
+  printf "\n*******************************************\n\n"
+  sleep 2
 }
 
 install_chia(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_chia_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_chia_started-${this_user}-${this_time}
   ## Install chia-blockchain-cli  
   echo "INSTALLING CHIA-BLOCKCHAIN"
   if [[ $(dpkg -l ubuntu-desktop|grep -c desktop) -eq 0 ]]; then
@@ -141,13 +188,17 @@ install_chia(){
   stable main"|sudo tee /etc/apt/sources.list.d/chia.list > /dev/null
   sudo apt update
   sudo apt install -y chia-blockchain${cli}
-  touch /home/$this_user/.InintializingUbuntuBuild_chia_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_chia_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_chia_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_chia_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************* INSTALLED CHIA **************"
+  printf "\n*******************************************\n\n"
+  sleep 2
 }
 
 add_plot_drives(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_drives_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_drives_started-${this_user}-${this_time}
   echo "MOUNTING AND ADDING PLOT DRIVES"
   drive_count=0
   sudo chown -R $USER: /mnt
@@ -171,13 +222,17 @@ add_plot_drives(){
   else
     echo "No drives were mounted or loaded into chia harvester. Manually add drives later."
   fi
-  touch /home/$this_user/.InintializingUbuntuBuild_drives_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_drives_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_drives_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_drives_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************** ADDED DRIVES ***************"
+  printf "\n*******************************************\n\n"
+  sleep 2
 }
 
 start_chia(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/$this_user/.InintializingUbuntuBuild_chiaEnd_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_chiaEnd_started-${this_user}-${this_time}
   echo "STARTING CHIA"
   #copy the db file
   db_file="blockchain_v2_mainnet.sqlite"
@@ -197,32 +252,41 @@ start_chia(){
   fi
   chia init
   nohup /usr/bin/chia-blockchain &
-  touch /home/$this_user/.InintializingUbuntuBuild_chiaEnd_finished-$this_user-$(date +%y%m%d.%H:%M:%S)
-  rm /home/$this_user/.InintializingUbuntuBuild_chiaEnd_started-$this_user-$this_time
+  touch /home/${this_user}/.InintializingUbuntuBuild_chiaEnd_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
+  rm /home/${this_user}/.InintializingUbuntuBuild_chiaEnd_started-${this_user}-${this_time}
+  printf "\n\n*******************************************"
+  printf "\n************** STARTED CHIA ***************"
+  printf "\n*******************************************\n\n"
+  sleep 2
+  printf "\n\n*******************************************"
+  printf "\nUbuntu build installed sucessfully!"
+  printf "\n*******************************************\n\n"
+  ls -la /home/${this_user}/.InintializingUbuntuBuild*|sort -k 8
 }
 
-# ADDS CRONTAB (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; /path/to/job -with args") | sudo crontab -
-# DELETES LINE crontab -l|grep -v '/path/to/job'|crontab -
 has_errors=false
 SCRIPTPATH=$(realpath "$0")
 if [[ -z $1 ]]; then
   this_user=$(echo $USER)
-  (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; $SCRIPTPATH $this_user") | sudo crontab -
+  echo 1|select-editor
+  (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; $SCRIPTPATH ${this_user}|tee -a /home/${this_user}/ubuntu_build.txt")|sudo crontab -
 fi
-if [ -f /home/$this_user/.InintializingUbuntuBuild_*_started-* ]; then
-  echo *******************************************
-  echo "Script error in $(echo .InintializingUbuntuBuild_*_started-*|awk -F- '{print $2}')!"
-  echo *******************************************
+if [ -f /home/${this_user}/.InintializingUbuntuBuild_*_started-* ]; then
+  create_tmux_session
+  printf "\n\n*******************************************"
+  printf "\nScript error in $(echo .InintializingUbuntuBuild_*_started-*|awk -F- '{print $2}')!"
+  printf "\n*******************************************\n\n"
   exit
 fi
 if [ -f .InintializingUbuntuBuild_cuda_finished* ]; then
+  create_tmux_session
   check_root
   verify_cuda
   verify_internet
   install_chia
   add_plot_drives
   start_chia
-  for file in $(ls -a /home/$this_user/.InintializingUbuntuBuild_*_started-* 2>/dev/null); do
+  for file in $(ls -a /home/${this_user}/.InintializingUbuntuBuild_*_started-* 2>/dev/null); do
     has_errors=true
     touch Ubuntu_build_error_in_$(echo $file|awk -F- '{print $2}')
   done
@@ -232,16 +296,25 @@ if [ -f .InintializingUbuntuBuild_cuda_finished* ]; then
   sudo crontab -l|grep -v "${SCRIPTPATH} ${this_user}"|sudo crontab -
   exit
 elif [ -f .InintializingUbuntuBuild_headers_finished* ]; then
+  create_tmux_session
   check_root
   verify_internet
   install_cuda
   sudo reboot
 elif [ -f .InintializingUbuntuBuild_apps_finished* ]; then
+  create_tmux_session
   check_root
   verify_internet
   install_headers
   sudo reboot
 else
+  if [[ $(which tmux|wc -l) -eq 1 ]]; then
+    setup_tmux
+    create_tmux_session
+    tmux_install=""
+  else
+    tmux_install="tmux "
+  fi
   check_root
   verify_internet
   maximize_drivespace
