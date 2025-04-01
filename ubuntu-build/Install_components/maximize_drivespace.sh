@@ -9,6 +9,15 @@
 #
 # Note: Current version of script will not say if drive space was expanded.
 
+check_root(){
+  echo "CHECKING RUN AS ROOT"
+  # Ensure run as root
+  if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+      echo "Not running as root, exiting."
+      exit
+  fi
+}
+
 Initialize(){
   has_errors=false
   SCRIPTPATH=$(realpath "$0")
@@ -60,6 +69,7 @@ maximize_drivespace(){
   echo "Reboot if needed"
 }
 
+check_root
 initialize
 setup_tmux
 create_tmux_session
