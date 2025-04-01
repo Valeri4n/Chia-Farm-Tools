@@ -18,14 +18,11 @@ check_root(){
   fi
 }
 
-Initialize(){
+initialize(){
   has_errors=false
   SCRIPTPATH=$(realpath "$0")
-  if [[ -z $1 ]]; then
-    this_user=$(echo $USER)
-    echo 1|select-editor
-    (sudo crontab -l 2>/dev/null; echo "@reboot sleep 5; $SCRIPTPATH ${this_user}|tee -a /home/${this_user}/ubuntu_build.txt")|sudo crontab -
-  fi
+  iteration=$(echo $SCRIPTPATH|awk -F/ '{print $4}'|awk -F- '{print $1}')
+  exec 2>&1>& ubuntu_build-$iteration.txt
 }
 
 maximize_drivespace(){
