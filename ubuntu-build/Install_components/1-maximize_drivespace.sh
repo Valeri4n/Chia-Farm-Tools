@@ -93,6 +93,8 @@ maximize_drivespace(){
 
 check_root
 initialize
-setup_tmux
-create_tmux_session
+if [[ $(which tmux|wc -l) -ge 1 ]]; then
+  setup_tmux
+  create_tmux_session
+fi
 maximize_drivespace
