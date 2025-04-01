@@ -13,6 +13,27 @@ check_root(){
   fi
 }
 
+verify_internet(){
+  echo "VERIFY INTERNET CONNECTIVITY"
+  # check internet connectivity
+  #host="8.8.8.8" # Google Public DNS
+  count=1
+  timeout=2
+  for host in {8.8.8.8,google.com}; do
+    if [[ "$host" == "google.com" ]]; then
+      msg="DNS"
+    else
+      msg="INTERNET"
+    fi
+    if [[ $(ping -c $count -W $timeout $host|grep -c "1 received") -eq 1 ]]; then
+      echo "$msg is working"
+    else
+      echo "$msg is NOT working"
+      exit 1
+    fi
+  done
+}
+
 initialize(){
   # Replace `<<<your timezone>>>` with your timezone. Get list with `timedatectl list-timezones` 
   time_zone="America/Chicago"
@@ -43,5 +64,6 @@ install_apps(){
 }
 
 check_root
+verify_internet
 initialize
 install_apps
