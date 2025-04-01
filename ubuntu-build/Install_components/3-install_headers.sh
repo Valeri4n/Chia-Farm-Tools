@@ -23,27 +23,6 @@ initialize(){
   fi
 }
 
-setup_tmux(){
-  if [[ ! -f /home/${this_user}/.tmux.conf ]]; then
-    cp /usr/share/doc/tmux/example_tmux.conf /home/${this_user}/.tmux.conf
-    chown ${this_user}: /home/${this_user}/.tmux.conf
-  fi
-  if [[ $(cat /home/${this_user}/.tmux.conf|grep "set -g mouse on"|grep -v "#"|wc -l) -eq 0 ]]; then
-    echo "# Enable mouse mode" >> /home/${this_user}/.tmux.conf
-    echo "set -g mouse on" >> /home/${this_user}/.tmux.conf
-  fi
-}
-
-create_tmux_session(){
-  session=install
-  tmux has-session -t $session 2>/dev/null
-  if [ $? != 0 ]; then
-    tmux new-session -s $session
-  else
-    tmux a -t $session
-  fi
-}
-
 install_headers(){
   this_time=$(date +%y%m%d.%H:%M:%S)
   touch /home/${this_user}/.InintializingUbuntuBuild_headers_started-${this_user}-${this_time}
@@ -60,8 +39,4 @@ install_headers(){
 
 check_root
 initialize
-if [[ $(which tmux|wc -l) -ge 1 ]]; then
-  setup_tmux
-  create_tmux_session
-fi
 install_headers
