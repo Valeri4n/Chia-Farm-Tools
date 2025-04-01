@@ -44,7 +44,6 @@ initialize(){
 install_cuda(){
   tmux new-session
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/${this_user}/.InintializingUbuntuBuild_cuda_started-${this_user}-${this_time}
   echo "INSTALLING CUDA"
   ## Install cuda and nvidia  
   os=$(lsb_release -a 2>/dev/null|grep Distributor|awk '{print $3}'|sed 's/[A-Z]/\L&/g')
@@ -64,8 +63,6 @@ install_cuda(){
   sudo apt install -y cuda
   sudo apt install -y nvidia-gds
   sudo apt autoremove -y
-  touch /home/${this_user}/.InintializingUbuntuBuild_cuda_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
-  rm /home/${this_user}/.InintializingUbuntuBuild_cuda_started-${this_user}-${this_time}
   printf "\n\n*******************************************"
   printf "\n************* INSTALLED CUDA **************"
   printf "\n*******************************************\n\n"
