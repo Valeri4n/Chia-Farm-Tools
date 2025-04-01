@@ -43,11 +43,8 @@ initialize(){
 
 install_headers(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/${this_user}/.InintializingUbuntuBuild_headers_started-${this_user}-${this_time}
   echo "INSTALLING LINUX-HEADERS"
   sudo apt install linux-headers-$(uname -r)
-  touch /home/${this_user}/.InintializingUbuntuBuild_headers_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
-  rm /home/${this_user}/.InintializingUbuntuBuild_headers_started-${this_user}-${this_time}
   printf "\n\n*******************************************"
   printf "\n************ INSTALLED HEADERS ************"
   printf "\n*******************************************\n\n"
