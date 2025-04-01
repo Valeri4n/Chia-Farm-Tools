@@ -45,7 +45,6 @@ initialize(){
 
 install_apps(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/${this_user}/.InintializingUbuntuBuild_apps_started-${this_user}-${this_time}
   echo "INSTALLING APPS"
   sudo timedatectl set-timezone $time_zone
   linux_image="linux-image-generic-hwe-$(lsb_release -a 2>/dev/null|grep Release|awk '{print $2}')"
@@ -54,8 +53,6 @@ install_apps(){
   sudo NEEDRESTART_MODE=a apt dist-upgrade -y
   sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs ledmon dos2unix tmux ${linux_image}
   sudo smbpasswd -a $this_user # Only needed if using samba mounts
-  touch /home/${this_user}/.InintializingUbuntuBuild_apps_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
-  rm /home/${this_user}/.InintializingUbuntuBuild_apps_started-${this_user}-${this_time}
   printf "\n\n*******************************************"
   printf "\n************* INSTALLED APPS **************"
   printf "\n*******************************************\n\n"
