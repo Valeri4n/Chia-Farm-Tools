@@ -52,6 +52,12 @@ create_tmux_session(){
 maximize_drivespace(){
   this_time=$(date +%y%m%d.%H:%M:%S)
   touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
+  drive_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $2}')
+  fs_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $3}')
+  if [[ $drive_size -eq $fs_size ]]; then
+    echo "Filesystem already maximized. Exiting"
+    exit
+  fi
   echo "MAXIMIZING MAIN DRIVE SPACE"
   name=$(df -h /home|sed -n 2p|awk '{print $1}')
   sudo lvextend -l +100%FREE $name
@@ -63,10 +69,26 @@ maximize_drivespace(){
   tput sgr0
   touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
   rm /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
+  final_fs_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $3}')
+  if [[ $final_fs_size -eq $fs_size ]]; then
+    msg="********** FINISHED - NO CHANGES **********"
+    msg1="Exiting"
+    sleep_time=0
+    reboot_system=false
+  else
+    msg="********** MAXIMIZED DRIVE SPACE **********"
+    reboot_system=true
+    msg1="Rebooting"
+    sleep_time=5
+  fi
   printf "\n\n*******************************************"
-  printf "\n**************** FINISHED *****************"
+  printf "\n${msg}"
   printf "\n*******************************************\n\n"
-  echo "Reboot if needed"
+  echo $msg1
+  sleep ${sleep_time}
+  if $reboot_system; then
+    sudo reboot
+  fi
 }
 
 check_root
