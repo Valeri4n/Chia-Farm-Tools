@@ -27,7 +27,6 @@ initialize(){
 
 maximize_drivespace(){
   this_time=$(date +%y%m%d.%H:%M:%S)
-  touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
   drive_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $2}')
   fs_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $3}')
   if [[ $drive_size -eq $fs_size ]]; then
@@ -43,8 +42,6 @@ maximize_drivespace(){
   df -h /home
   echo
   tput sgr0
-  touch /home/${this_user}/.InintializingUbuntuBuild_drivespace_finished-${this_user}-$(date +%y%m%d.%H:%M:%S)
-  rm /home/${this_user}/.InintializingUbuntuBuild_drivespace_started-${this_user}-${this_time}
   final_fs_size=$(lsblk -b -o name,size,fssize|grep ubuntu|awk '{print $3}')
   if [[ $final_fs_size -eq $fs_size ]]; then
     msg="********** FINISHED - NO CHANGES **********"
