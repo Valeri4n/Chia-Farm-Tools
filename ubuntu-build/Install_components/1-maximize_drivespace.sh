@@ -16,14 +16,18 @@ check_root(){
       echo "Not running as root, exiting."
       exit
   fi
-  echo 2
 }
 
 initialize(){
+  echo 2
   has_errors=false
+  echo 3
   SCRIPTPATH=$(realpath "$0")
+  echo 4
   iteration=$(echo $SCRIPTPATH|awk -F/ '{print $4}'|awk -F- '{print $1}')
+  echo 5
   exec 2>&1>& ubuntu_build-$iteration.txt
+  echo 6
 }
 
 maximize_drivespace(){
