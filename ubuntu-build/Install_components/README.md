@@ -8,6 +8,7 @@ To Install, run these files in order.
   
 Use the following command to download the files:  
 ```
+sudo apt install curl
 curl https://github.com/Valeri4n/Chia-Farm-Tools/blob/main/ubuntu-build/Install_components/1-maximize_drivespace.sh > 1-maximize_drivespace.sh
 curl https://github.com/Valeri4n/Chia-Farm-Tools/blob/main/ubuntu-build/Install_components/2-install_apps.sh > 2-install_apps.sh
 curl https://github.com/Valeri4n/Chia-Farm-Tools/blob/main/ubuntu-build/Install_components/3-install_headers.sh > 3-install_headers.sh
