@@ -51,8 +51,10 @@ install_apps(){
   export DEBIAN_FRONTEND=noninteractive
   sudo apt update
   sudo NEEDRESTART_MODE=a apt dist-upgrade -y
-  sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs ledmon dos2unix tmux ${linux_image}
+  sudo apt install -y ca-certificates curl gnupg samba cifs-utils smartmontools mdadm xfsprogs ledmon dos2unix tmux openssh-server ${linux_image}
   sudo smbpasswd -a $this_user # Only needed if using samba mounts
+  sudo systemctl enable ssh
+  sudo systemctl start ssh
   printf "\n\n*******************************************"
   printf "\n************* INSTALLED APPS **************"
   printf "\n*******************************************\n\n"
