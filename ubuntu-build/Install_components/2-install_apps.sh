@@ -59,7 +59,7 @@ install_apps(){
   printf "\n************* INSTALLED APPS **************"
   printf "\n*******************************************\n\n"
   sleep 5
-  sudo reboot
+  #sudo reboot
 }
 
 check_root
