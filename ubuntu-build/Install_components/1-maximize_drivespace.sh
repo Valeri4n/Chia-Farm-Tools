@@ -20,7 +20,7 @@ check_root(){
 
 initialize(){
   echo 2
-  has_errors=false
+#  has_errors=false
   echo 3
   SCRIPTPATH=$(realpath "$0")
   echo 4
