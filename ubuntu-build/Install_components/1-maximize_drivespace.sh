@@ -16,6 +16,7 @@ check_root(){
       echo "Not running as root, exiting."
       exit
   fi
+  echo 2
 }
 
 initialize(){
