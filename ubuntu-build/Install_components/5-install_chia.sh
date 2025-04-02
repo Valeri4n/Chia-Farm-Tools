@@ -40,7 +40,7 @@ initialize(){
   has_errors=false
   SCRIPTPATH=$(realpath "$0")
   iteration=$(echo $SCRIPTPATH|awk -F/ '{print $4}'|awk -F- '{print $1}')
-  exec 2>&1>& ubuntu_build-$iteration.txt
+  exec &> >(tee ubuntu_build-$iteration.txt)
 }
 
 verify_cuda(){
