@@ -84,7 +84,7 @@ add_plot_drives(){
   this_time=$(date +%y%m%d.%H:%M:%S)
   echo "MOUNTING AND ADDING PLOT DRIVES"
   drive_count=0
-  sudo chown -R $USER: /mnt
+  sudo chown $USER: /mnt
   for drive in $(lsblk -l -o fstype,name,type,fssize,mountpoint|grep -e 'ext4.* sd'|grep -v -e LVM -e boot |awk '{print $2}'); do
     echo "Processing drive $drive"
     mkdir /mnt/${drive}
