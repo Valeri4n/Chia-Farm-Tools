@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Copywrite 2025 by Valerian
 
 dev=$1
 sleep 5
