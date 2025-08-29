@@ -68,8 +68,7 @@ sudo apt upgrade -y
 sudo apt autoremove -y
 printf "\n**************************** CHECKING INSTALL ****************************\n\n"
 if [[ $(nvidia-smi|sed -n 3p|grep "Driver Version"|wc -l) -eq 0 ]] then
-  printf "\nINSTALL DID NOT COMPLETE. CHECK FOR ERRORS.\n\n"
-else
-  printf "\n******************************* REBOOTING ********************************\n\n"
-  sudo reboot
+  printf "\nINSTALL DID NOT COMPLETE. REBOOTING TO VERIFY AND CHECK AGAIN BY RUNNING nvidia-smi.\n\n"
 fi
+printf "\n******************************* REBOOTING ********************************\n\n"
+sudo reboot
